@@ -1,6 +1,5 @@
 # encoding: utf-8
 
-import json
 import logging
 import os
 import sys
@@ -16,7 +15,7 @@ from flask import Flask, request, jsonify
 import flask_admin as admin
 from env import mongo_config
 
-logging.basicConfig(filename='log/request_mapping.log',
+logging.basicConfig(filename=work_dir + 'gtask_admin/log/request_mapping.log',
                     level=logging.DEBUG,
                     filemode='a',
                     format='%(asctime)s,%(levelname)s,%(message)s',
