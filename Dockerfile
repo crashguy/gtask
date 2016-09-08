@@ -35,7 +35,7 @@ RUN mkdir -p /var/lock/apache2 /var/run/apache2 /var/run/sshd /var/log/superviso
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 
-EXPOSE 9020
+EXPOSE 9010
 COPY . /home/linan/gtask
 WORKDIR /home/linan/gtask
 
