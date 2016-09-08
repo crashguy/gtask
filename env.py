@@ -6,8 +6,8 @@ if os.getenv("ENV_MODE") == "docker":
     mongo_config = {
         'DB': 'gtask',
         'connect': False,
-        'host': os.getenv("MONGODB_HOST"),
-        'port': int(os.getenv("MONGODB_PORT"))
+        'host': os.getenv("MONGODB_HOST", 'linan.chinacloudapp.cn'),
+        'port': int(os.getenv("MONGODB_PORT", 26000))
     }
 elif os.getenv("ENV_MODE") == "produce":
     DEBUG = False
