@@ -38,6 +38,8 @@ COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 EXPOSE 9020
 COPY . /home/linan/gtask
 WORKDIR /home/linan/gtask
+ENV PATH $PATH:/home/linan/gtask
+
 RUN chown -R www-data .
 USER www-data
 
