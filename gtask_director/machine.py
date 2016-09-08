@@ -1,7 +1,14 @@
+
+import os
+import sys
+self_dir = os.path.abspath(os.path.join(__file__, os.pardir)) + '/'
+work_dir = os.path.abspath(os.path.join(__file__, os.pardir, os.pardir)) + '/'
+if work_dir not in sys.path:
+    sys.path.insert(0, work_dir)
+
 import logging
 import time
 from datetime import datetime
-
 import requests
 
 from env import mongo_config
