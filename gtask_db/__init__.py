@@ -1,0 +1,3 @@
+import mongoengine
+
+db = mongoengine

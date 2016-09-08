@@ -1,0 +1,38 @@
+from gtask_admin.models import db
+from datetime import datetime
+
+
+class Mission(db.Document):
+    name = db.StringField(max_length=128)
+    docker = db.StringField(max_length=40)
+    machine = db.StringField(max_length=40)
+    volumes = db.StringField(max_length=128)
+    gpu_num = db.IntField()
+    repo = db.StringField(max_length=128)
+    branch = db.StringField(max_length=40)
+    command = db.StringField(max_length=256)
+
+    init_time = db.DateTimeField(default=datetime.now())
+    status = db.IntField()
+
+    running_machine = db.StringField(max_length=128)
+    running_gpu = db.StringField(max_length=128)
+    running_id = db.StringField(max_length=70)
+    arrange_time = db.DateTimeField()
+    start_time = db.DateTimeField()
+
+
+class Machine(db.Document):
+    name = db.StringField(max_length=40)
+    host = db.StringField(max_length=20)
+    plugin = db.StringField(max_length=20)
+    cuda_libs = db.ListField(db.StringField())
+
+    cpu = db.StringField(max_length=20)
+    memory = db.StringField(max_length=40)
+    gpu = db.DictField()
+    container_num = db.IntField()
+
+    last_update = db.DateTimeField()
+
+
