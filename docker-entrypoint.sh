@@ -4,7 +4,7 @@
 touch /srv/logs/gunicorn.log
 touch /srv/logs/access.log
 tail -n 0 -f /srv/logs/*.log &
-cd /src/gtask_admin
+exec cd /src/gtask_admin
 
 # Start Gunicorn processes
 echo Starting Gunicorn.
