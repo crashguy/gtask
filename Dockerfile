@@ -1,45 +1,41 @@
-FROM python:3.5
+############################################################
+# Dockerfile to run a Django-based web application
+# Based on an Ubuntu Image
+############################################################
 
-RUN pip install flask_admin==1.4.1 flask_mongoengine==0.7.5 requests==2.6.0 mongoengine==0.10.6
-ENV ENV_MODE docker
+# Set the base image to use to Ubuntu
+FROM ubuntu:14.04
 
-# build uwsgi
-RUN set -ex \
-	&& buildDeps=' \
-		gcc \
-		libbz2-dev \
-		libc6-dev \
-		libpcre3-dev \
-		libssl-dev \
-		make \
-		pax-utils \
-		zlib1g-dev \
-	' \
-	&& apt-get update \
-	&& apt-get install -y --no-install-recommends $buildDeps \
-	&& rm -rf /var/lib/apt/lists/* \
-	&& pip install --no-cache-dir uwsgi \
-	&& runDeps="$( \
-    	scanelf --needed --nobanner --recursive /usr/local \
-            | awk '{ gsub(/,/, "\nso:", $2); print "so:" $2 }' \
-            | sort -u | cut -c4- \
-            | xargs dpkg --search \
-            | cut -d ':' -f 1 | sort -u \
-    )" \
-	&& apt-get install -y --no-install-recommends $runDeps \
-	&& apt-get purge -y --auto-remove $buildDeps
+# Set the file maintainer (your name - the file's author)
+MAINTAINER linan
 
-RUN apt-get update && apt-get install -y openssh-server apache2 supervisor vim
-RUN mkdir -p /var/lock/apache2 /var/run/apache2 /var/run/sshd /var/log/supervisor
+# Set env variables used in this Dockerfile (add a unique prefix, such as DOCKYARD)
+# Local directory with project source
+ENV DOCKYARD_SRC=.
+# Directory in container for all project files
+ENV DOCKYARD_SRVHOME=/srv
+# Directory in container for project source files
+ENV DOCKYARD_SRVPROJ=/srv
 
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+# Update the default application repository sources list
+RUN apt-get update && apt-get -y upgrade
+RUN apt-get install -y python python-pip
 
+# Create application subdirectories
+WORKDIR $DOCKYARD_SRVHOME
+RUN mkdir media static logs
+VOLUME ["$DOCKYARD_SRVHOME/logs/"]
 
-EXPOSE 9020
-COPY . /home/linan/gtask
-WORKDIR /home/linan/gtask
+# Copy application source code to SRCDIR
+COPY $DOCKYARD_SRC $DOCKYARD_SRVPROJ
 
-RUN chown -R www-data .
-USER www-data
+# Install Python dependencies
+RUN pip install -r $DOCKYARD_SRVPROJ/requirements.txt
 
-CMD ["/usr/bin/supervisord"]
+# Port to expose
+EXPOSE 8000
+
+# Copy entrypoint script into the image
+WORKDIR $DOCKYARD_SRVPROJ
+COPY ./docker-entrypoint.sh /
+ENTRYPOINT ["/docker-entrypoint.sh"]
