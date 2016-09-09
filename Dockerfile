@@ -44,4 +44,5 @@ USER www-data
 
 CMD ["/usr/bin/supervisord"]
 
+RUN apt-get update
 RUN apt-get install -y git
