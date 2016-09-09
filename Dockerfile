@@ -32,7 +32,8 @@ RUN pip install  \
     flask_mongoengine==0.7.5 \
     requests==2.6.0 \
     mongoengine==0.10.6 \
-    gunicorn==19.6.0
+    gunicorn==19.6.0 \
+    request==2.6.0
 
 # Port to expose
 EXPOSE 8000
