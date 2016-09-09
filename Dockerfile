@@ -1,6 +1,6 @@
 FROM python:3.5
 
-RUN pip install flask_admin==1.4.1 flask_mongoengine==0.7.5 requests==2.6.0
+RUN pip install flask_admin==1.4.1 flask_mongoengine==0.7.5 requests==2.6.0 mongoengine==0.10.6
 ENV ENV_MODE docker
 
 # build uwsgi
