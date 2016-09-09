@@ -22,6 +22,7 @@ class Mission(db.Document):
     running_id = db.StringField(max_length=70)
     arrange_time = db.DateTimeField()
     start_time = db.DateTimeField()
+    finish_time = db.DateTimeField()
 
 
 class Machine(db.Document):
@@ -34,5 +35,5 @@ class Machine(db.Document):
     memory = db.StringField(max_length=40)
     gpu = db.DictField()
     container_num = db.IntField()
-
+    containers = db.StringField(max_length=1024)
     last_update = db.DateTimeField()

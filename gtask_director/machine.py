@@ -20,19 +20,37 @@ MISSION_LIMIT = 40
 
 def update_machine():
     machines = Machine.objects().all()
+    updated_machines = list()
     for m in machines:
         try:
             r = requests.get("http://%s/info" % m['host']).json()
             m['container_num'] = r['ContainersRunning']
             m['last_update'] = datetime.now()
             m.save()
+            updated_machines.append(m)
         except Exception as e:
             logging.error(e.message)
-    return machines
+    return updated_machines
 
 
 def update_mission():
-    pass
+    machines = Machine.objects().all()
+    for m in machines:
+        r = requests.get("http://%s/containers/json?all=1" % m['host']).json()
+        m['containers'] = '          '.join(['%s: %s' % (_c['Names'][0], _c['State']) for _c in r])
+        m.save()
+        for c in r:
+            if c['State'] == 'exited':
+                mission = Mission.objects(running_id=c['Id']).first()
+                if mission:
+                    mission['status'] = 'finished'
+                    mission['finish_time'] = datetime.now()
+                    mission.save()
+                    resp = requests.delete("http://%s/containers/%s" % (m['host'], c['Id'][:12]))
+                    if resp.status_code >= 400:
+                        logging.error("delete failed. url={}".format(("http://%s/containers/%s" % (m['host'], c['Id'][:12]))))
+                    else:
+                        logging.info("delete succeed. name=" + mission['name'])
 
 
 def deploy_mission(machine, mission):
@@ -50,9 +68,11 @@ def deploy_mission(machine, mission):
     try:
         r = requests.post(create_url, json=post_data).json()
         mission['running_id'] = r['Id']
-        r = requests.post(start_url.format(r['Id'][:12]))
-        if r.status_code >= 400:
-            raise Exception('start failed. code={}. {}'.format(r.status_code, r.text))
+        mission['running_machine'] = machine['name']
+        mission['start_time'] = datetime.now()
+        resp = requests.post(start_url.format(r['Id'][:12]))
+        if resp.status_code >= 400:
+            raise Exception('start failed. code={}. {}'.format(resp.status_code, resp.text))
         mission['status'] = 'started'
     except Exception as e:
         mission['status'] = 'start failed'
