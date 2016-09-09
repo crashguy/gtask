@@ -26,11 +26,16 @@ WORKDIR $DOCKYARD_SRVHOME
 RUN mkdir media static logs
 VOLUME ["$DOCKYARD_SRVHOME/logs/"]
 
+# Install Python dependencies
+RUN pip install -r \
+    flask_admin==1.4.1 \
+    flask_mongoengine==0.7.5 \
+    requests==2.6.0 \
+    mongoengine==0.10.6 \
+    gunicorn==19.6.0
+
 # Copy application source code to SRCDIR
 COPY $DOCKYARD_SRC $DOCKYARD_SRVPROJ
-
-# Install Python dependencies
-RUN pip install -r $DOCKYARD_SRVPROJ/requirements.txt
 
 # Port to expose
 EXPOSE 8000
@@ -38,4 +43,4 @@ EXPOSE 8000
 # Copy entrypoint script into the image
 WORKDIR $DOCKYARD_SRVPROJ
 COPY ./docker-entrypoint.sh /
-ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD ["/docker-entrypoint.sh"]
