@@ -29,7 +29,7 @@ RUN set -ex \
 	&& apt-get install -y --no-install-recommends $runDeps \
 	&& apt-get purge -y --auto-remove $buildDeps
 
-RUN apt-get update && apt-get install -y openssh-server apache2 supervisor
+RUN apt-get update && apt-get install -y openssh-server apache2 supervisor vim
 RUN mkdir -p /var/lock/apache2 /var/run/apache2 /var/run/sshd /var/log/supervisor
 
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
@@ -38,11 +38,6 @@ COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 EXPOSE 9020
 COPY . /home/linan/gtask
 WORKDIR /home/linan/gtask
-
-
-RUN apt-get update
-RUN apt-get install -y git
-
 
 RUN chown -R www-data .
 USER www-data
