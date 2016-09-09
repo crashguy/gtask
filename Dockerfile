@@ -27,7 +27,7 @@ RUN mkdir media static logs
 VOLUME ["$DOCKYARD_SRVHOME/logs/"]
 
 # Install Python dependencies
-RUN pip install -r \
+RUN pip install  \
     flask_admin==1.4.1 \
     flask_mongoengine==0.7.5 \
     requests==2.6.0 \
