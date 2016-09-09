@@ -39,10 +39,12 @@ EXPOSE 9020
 COPY . /home/linan/gtask
 WORKDIR /home/linan/gtask
 
+
+RUN apt-get update
+RUN apt-get install -y git
+
+
 RUN chown -R www-data .
 USER www-data
 
 CMD ["/usr/bin/supervisord"]
-
-RUN apt-get update
-RUN apt-get install -y git
