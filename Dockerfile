@@ -33,7 +33,7 @@ RUN pip install  \
     requests==2.6.0 \
     mongoengine==0.10.6 \
     gunicorn==19.6.0 \
-    request==2.6.0
+    requests==2.6.0
 
 # Port to expose
 EXPOSE 8000
