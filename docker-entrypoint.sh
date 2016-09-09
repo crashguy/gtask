@@ -4,10 +4,11 @@
 touch /srv/logs/gunicorn.log
 touch /srv/logs/access.log
 tail -n 0 -f /srv/logs/*.log &
+cd /src/gtask_admin
 
 # Start Gunicorn processes
 echo Starting Gunicorn.
-exec gunicorn gtask_admin/app_server:application \
+exec gunicorn app_server:application \
     --name gtask \
     --bind 0.0.0.0:9020 \
     --workers 1 \
