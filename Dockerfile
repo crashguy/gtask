@@ -34,13 +34,16 @@ RUN pip install  \
     mongoengine==0.10.6 \
     gunicorn==19.6.0
 
-# Copy application source code to SRCDIR
-COPY $DOCKYARD_SRC $DOCKYARD_SRVPROJ
-
 # Port to expose
 EXPOSE 8000
 
-# Copy entrypoint script into the image
-WORKDIR $DOCKYARD_SRVPROJ
 COPY ./docker-entrypoint.sh /
-CMD ["source", "/docker-entrypoint.sh"]
+RUN chmod +x /docker-entrypoint.sh
+
+# Copy application source code to SRCDIR
+COPY $DOCKYARD_SRC $DOCKYARD_SRVPROJ
+
+# Copy entrypoint script into the image
+WORKDIR $DOCKYARD_SRVPROJ/gtask_admin
+
+CMD ["/docker-entrypoint.sh"]
