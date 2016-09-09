@@ -1,3 +1,11 @@
+import os
+import sys
+
+self_dir = os.path.abspath(os.path.join(__file__, os.pardir)) + '/'
+work_dir = os.path.abspath(os.path.join(__file__, os.pardir, os.pardir)) + '/'
+if work_dir not in sys.path:
+    sys.path.insert(0, work_dir)
+
 from env import DEBUG, PORT
 from gtask_admin.app import gtask_admin, app, mongo_config
 from gtask_admin.views.views import MissionView, MachineView
