@@ -37,6 +37,9 @@ RUN pip install  \
 # Port to expose
 EXPOSE 8000
 
+# set env to docker
+ENV ENV_MODE=docker
+
 COPY ./docker-entrypoint.sh /
 RUN chmod +x /docker-entrypoint.sh
 
