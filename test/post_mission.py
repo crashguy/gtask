@@ -2,7 +2,9 @@ import requests
 import time
 mission_list = list()
 
-for i in range(3688, 3690):
+post_host = "http://10.8.0.46:9020/"
+
+for i in range(0, 3688):
     mission_list.append({
         "job": "job",
         "name": "test-%04d" % i,
@@ -12,14 +14,14 @@ for i in range(3688, 3690):
     })
 
     if len(mission_list) >= 100:
-        r = requests.post(url="http://127.0.0.1:9020/mission/", json=mission_list)
+        r = requests.post(url=post_host + "mission/", json=mission_list)
         r = r.json()
         print(r)
         mission_list.clear()
         time.sleep(1)
         print(i)
 
-r = requests.post(url="http://127.0.0.1:9020/mission/", json=mission_list)
+r = requests.post(url=post_host + "mission/", json=mission_list)
 r = r.json()
 print(r)
 mission_list.clear()
