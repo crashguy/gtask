@@ -35,5 +35,5 @@ class Machine(db.Document):
     memory = db.StringField(max_length=40)
     gpu = db.DictField()
     container_num = db.IntField()
-    containers = db.StringField(max_length=1024)
+    containers = db.StringField()
     last_update = db.DateTimeField()

@@ -1,6 +1,6 @@
-
 import os
 import sys
+
 self_dir = os.path.abspath(os.path.join(__file__, os.pardir)) + '/'
 work_dir = os.path.abspath(os.path.join(__file__, os.pardir, os.pardir)) + '/'
 if work_dir not in sys.path:
@@ -10,12 +10,11 @@ import logging
 import time
 from datetime import datetime
 import requests
-
 from env import mongo_config
 from gtask_db.mission import Mission, Machine, db
 
 SLEEP = 15
-MISSION_LIMIT = 40
+MISSION_LIMIT = 20
 
 
 def update_machine():
@@ -25,11 +24,13 @@ def update_machine():
         try:
             r = requests.get("http://%s/info" % m['host']).json()
             m['container_num'] = r['ContainersRunning']
+            m['cpu'] = '%d cores' % r['NCPU']
+            m['memory'] = '%d G' % (r['MemTotal'] / (1024 * 1024 * 1024))
             m['last_update'] = datetime.now()
             m.save()
             updated_machines.append(m)
         except Exception as e:
-            logging.error(e.message)
+            logging.error(e)
     return updated_machines
 
 
@@ -56,7 +57,7 @@ def update_mission():
 def deploy_mission(machine, mission):
     post_data = {
         "Image": mission['docker'],
-        "Volumes": dict({'/home/t430': {}, '/zfs': {}, '/data':{} }),
+        "Volumes": dict({'/home/t430': {}, '/zfs': {}, '/data': {}}),
         "Entrypoint": mission['command'].split(),
         "HostConfig": {
             "Binds": ['/home/t430:/home/t430', '/zfs:/zfs', '/data:/data'],
@@ -88,6 +89,7 @@ def deploy(machines):
             missions = Mission.objects(machine=machine['name'], status='queueing').limit(post_num)
             for mission in missions:
                 deploy_mission(machine, mission)
+
 
 if __name__ == '__main__':
     db.connect(mongo_config['DB'],
