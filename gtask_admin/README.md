@@ -1,5 +1,7 @@
+提交cpu计算任务
 POST http://172.11.51.3:9020/mission/
 
+post data:
 > [{
 >	"job": "job-1",
 >	"name": "test",

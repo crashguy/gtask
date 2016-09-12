@@ -1,29 +1,65 @@
-import requests
 import time
+
+import requests
+
 mission_list = list()
 
 post_host = "http://10.8.0.46:9020/"
 
-for i in range(0, 3688):
-    mission_list.append({
-        "job": "job",
-        "name": "test-%04d" % i,
-        "docker": "r.fds.so:5000/sogou_extractor:test",
-        "machine": "octp",
-        "command": "java -cp build/libs/sogoupreprocess.jar com.naturali.cmdline.SougouExtractor  /zfs/octp/sogout/1/part-m-0%04d.bz2 /zfs/octp/test_out/part-m-0%04d" % (i, i)
-    })
+quest_list = [{
+    "machine": "octq",
+    "dir": 0,
+    "dir_name": "sogout_data.0.comp",
+    "start": 1,
+    "end": 4096,
+}, {
+    "machine": "octr",
+    "dir": 3,
+    "dir_name": "sogout_data.3.comp",
+    "start": 1,
+    "end": 4096
+}, {
+    "machine": "octr",
+    "dir": 5,
+    "dir_name": "sogout_data.5.comp",
+    "start": 0,
+    "end": 4096
+}, {
+    "machine": "octp",
+    "dir": 7,
+    "dir_name": "7",
+    "start": 0,
+    "end": 4096
+}, {
+    "machine": "octo",
+    "dir": 6,
+    "dir_name": "6",
+    "start": 0,
+    "end": 4096
+}]
 
-    if len(mission_list) >= 100:
-        r = requests.post(url=post_host + "mission/", json=mission_list)
-        r = r.json()
-        print(r)
-        mission_list.clear()
-        time.sleep(1)
-        print(i)
+for quest in quest_list:
+    for i in range(quest['start'], quest['end']):
+        mission_list.append({
+            "job": "job",
+            "name": "test-%s-%d-%04d" % (quest['machine'], quest['dir'], i),
+            "docker": "r.fds.so:5000/sogou_extractor:test",
+            "machine": quest['machine'],
+            "command": "java -cp build/libs/sogoupreprocess.jar com.naturali.cmdline.SougouExtractor  /zfs/%s/sogout/%s/part-m-0%04d.bz2 /zfs/%s/test_out/%d/part-m-0%04d" % (
+            quest['machine'], quest['dir_name'], i, quest['machine'], quest['dir'], i)
+        })
 
-r = requests.post(url=post_host + "mission/", json=mission_list)
-r = r.json()
-print(r)
-mission_list.clear()
-time.sleep(1)
-print(i)
+        if len(mission_list) >= 100:
+            r = requests.post(url=post_host + "mission/", json=mission_list)
+            r = r.json()
+            print(r)
+            mission_list.clear()
+            time.sleep(1)
+            print(i)
+
+    r = requests.post(url=post_host + "mission/", json=mission_list)
+    r = r.json()
+    print(r)
+    mission_list.clear()
+    time.sleep(1)
+    print(quest['machine'] + " ends")

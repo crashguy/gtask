@@ -77,7 +77,7 @@ def deploy_mission(machine, mission):
         mission['status'] = 'started'
     except Exception as e:
         mission['status'] = 'start failed'
-        logging.error(e.message)
+        logging.error(e)
 
     mission.save()
 
