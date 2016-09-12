@@ -28,3 +28,6 @@ respanse:
 
 examples:
 https://github.com/crashguy/gtask/blob/master/test/post_mission.py
+
+任务管理后台:
+http://172.11.51.3:9020/admin/mission
