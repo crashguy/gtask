@@ -58,11 +58,12 @@ def update_machine():
                     _gpu['processes'] = ','.join([str(p['PID']) for p in g['Processes']])
                 else:
                     m['available_gpus'].append(_gpu['path'])
+                    _gpu['processes'] = ''
                 _gpu['last_update'] = datetime.now()
                 _gpu.save()
-            start_missions = GpuMission.objects(running_machine=m['name'], status='started').all()
+            start_missions = GpuMission.objects(running_machine=m['name'], status='running').all()
             for mission in start_missions:
-                m['available_gpus'] -= mission['running_gpu']
+                m['available_gpus'] = list(set(m['available_gpus']) - set(mission['running_gpu']))
 
             m['gpu_last_update'] = datetime.now()
             m.save()
@@ -74,7 +75,13 @@ def update_machine():
 
 
 def update_mission():
-    pass
+    missions = GpuMission.objects(status='running').all()
+    for mission in missions:
+        r = requests.get("http://%s/containers/%s/json" % mission['running_machine']['plugin'], mission['running_id'][:12]).json()
+        mission['status'] = r['State']['Status']
+        if mission['status'] != 'running':
+            mission['finish_time'] = datetime.now()
+        mission.save()
 
 
 def deploy_mission(machine, mission):
@@ -114,14 +121,16 @@ def deploy_mission(machine, mission):
         r = resp.json()
         mission['running_id'] = r['Id']
         mission['running_machine'] = machine['name']
-        mission['running_gpus'] = machine['available_gpus'][:mission['gpu_num']]
+        mission['running_gpu'] = machine['available_gpus'][:mission['gpu_num']]
         mission['start_time'] = datetime.now()
         resp = requests.post(start_url.format(r['Id'][:12]))
         if resp.status_code >= 400:
             raise Exception('start failed. code={}. {}'.format(resp.status_code, resp.text))
-        mission['status'] = 'started'
+        mission['status'] = 'running'
+        mission['error_log'] = ''
     except Exception as e:
         mission['status'] = 'start failed'
+        mission['error_log'] = str(e)
         logging.error(e)
 
     mission.save()
@@ -146,6 +155,6 @@ if __name__ == '__main__':
     init_gpu()
     while True:
         machines = update_machine()
-        # update_mission()
+        update_mission()
         deploy(machines)
         time.sleep(SLEEP)

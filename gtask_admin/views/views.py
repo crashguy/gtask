@@ -44,14 +44,16 @@ def show_machine_name_formatter(view, context, model, name):
 
 
 def pid_formatter_formatter(view, context, model, name):
-    pid = model[name]
-    if not pid:
+    pids = model[name]
+    if not pids:
         return ''
-    mission = GpuMission.objects(running_pid=pid).first()
-    if mission:
-        return '%s(%s)' % (pid, mission['name'])
     else:
-        return '%s' % pid
+        pids = pids.split(',')
+    mission = GpuMission.objects(running_pid__in=pids).first()
+    if mission:
+        return '%s(%s)' % (model[name], mission['name'])
+    else:
+        return '%s' % model[name]
 
 
 class CpuMissionView(ModelView):
@@ -67,7 +69,8 @@ class CpuMissionView(ModelView):
 
 
 class MachineView(ModelView):
-    column_list = ['name', 'accept_jobs', 'container_num', 'cpu', 'memory', 'available_gpus', 'last_update', 'gpu_last_update']
+    column_list = ['name', 'accept_jobs', 'container_num', 'cpu', 'memory',
+                   'available_gpus', 'last_update', 'gpu_last_update']
     form_columns = ['name', 'accept_jobs', 'host', 'plugin', 'cuda_libs', 'ro_cuda_libs', 'devices']
     column_formatters = dict(
         last_update=datetime_formatter,
@@ -80,7 +83,7 @@ class MachineView(ModelView):
 class GpuMissionView(ModelView):
     column_list = ['name', 'status', 'machine', 'running_machine', 'running_gpu',
                    'running_id', 'running_pid', 'arrange_time', 'start_time',
-                   'finish_time']
+                   'finish_time', 'error_log']
     form_columns = ['name', 'status', 'docker', 'machine', 'volumes', 'gpu_num', 'repo',
                     'branch', 'command', 'git_username', 'git_passwd']
     column_formatters = dict(
