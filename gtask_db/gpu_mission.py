@@ -1,8 +1,9 @@
-from gtask_admin.models import db
 from datetime import datetime
 
+from gtask_db import db
 
-class Mission(db.Document):
+
+class GpuMission(db.Document):
     name = db.StringField(max_length=128)
     docker = db.StringField(max_length=40)
     machine = db.StringField(max_length=40)
@@ -12,27 +13,17 @@ class Mission(db.Document):
     branch = db.StringField(max_length=40)
     command = db.StringField(max_length=256)
 
+    git_username = db.StringField(max_length=30)
+    git_passwd = db.StringField(max_length=30)
+
     init_time = db.DateTimeField(default=datetime.now())
-    status = db.IntField()
+    status = db.StringField(max_length=20)
 
     running_machine = db.StringField(max_length=128)
-    running_gpu = db.StringField(max_length=128)
+    running_gpu = db.ListField(db.StringField())
+
     running_id = db.StringField(max_length=70)
+    running_pid = db.StringField(max_length=30)
     arrange_time = db.DateTimeField()
     start_time = db.DateTimeField()
-
-
-class Machine(db.Document):
-    name = db.StringField(max_length=40)
-    host = db.StringField(max_length=20)
-    plugin = db.StringField(max_length=20)
-    cuda_libs = db.ListField(db.StringField())
-
-    cpu = db.StringField(max_length=20)
-    memory = db.StringField(max_length=40)
-    gpu = db.DictField()
-    container_num = db.IntField()
-
-    last_update = db.DateTimeField()
-
-
+    finish_time = db.DateTimeField()

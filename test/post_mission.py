@@ -4,37 +4,19 @@ import requests
 
 mission_list = list()
 
-post_host = "http://10.8.0.46:9020/"
+post_host = "http://127.0.0.1:9020/"
 
 quest_list = [{
-    "machine": "octq",
-    "dir": 0,
-    "dir_name": "sogout_data.0.comp",
-    "start": 1,
+    "machine": "octp",
+    "dir": 9,
+    "dir_name": "sogout_data.9.comp",
+    "start": 2299,
     "end": 4096,
 }, {
-    "machine": "octr",
-    "dir": 3,
-    "dir_name": "sogout_data.3.comp",
-    "start": 1,
-    "end": 4096
-}, {
-    "machine": "octr",
-    "dir": 5,
-    "dir_name": "sogout_data.5.comp",
-    "start": 0,
-    "end": 4096
-}, {
-    "machine": "octp",
-    "dir": 7,
-    "dir_name": "7",
-    "start": 0,
-    "end": 4096
-}, {
     "machine": "octo",
-    "dir": 6,
-    "dir_name": "6",
-    "start": 0,
+    "dir": 8,
+    "dir_name": "sogout_data.8.comp",
+    "start": 1840,
     "end": 4096
 }]
 

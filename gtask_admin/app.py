@@ -9,7 +9,7 @@ self_dir = os.path.abspath(os.path.join(__file__, os.pardir)) + '/'
 work_dir = os.path.abspath(os.path.join(__file__, os.pardir, os.pardir)) + '/'
 if work_dir not in sys.path:
     sys.path.insert(0, work_dir)
-from gtask_db.mission import Mission
+from gtask_db.cpu_mission import Mission
 
 from flask import Flask, request, jsonify
 import flask_admin as admin

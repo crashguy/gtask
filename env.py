@@ -6,7 +6,7 @@ if os.getenv("ENV_MODE") == "docker":
     mongo_config = {
         'DB': 'gtask',
         'connect': False,
-        'host': os.getenv("MONGODB_HOST", '10.244.95.1'),
+        'host': os.getenv("MONGODB_HOST", '172.11.51.3'),
         'port': int(os.getenv("MONGODB_PORT", 6000))
     }
 elif os.getenv("ENV_MODE") == "linan":
@@ -15,8 +15,11 @@ elif os.getenv("ENV_MODE") == "linan":
     mongo_config = {
         'DB': 'gtask',
         'connect': False,
-        'host': 'linan.chinacloudapp.cn',
-        'port': 26000
+        # 'host': 'linan.chinacloudapp.cn',
+        # 'port': 26000
+        # 'host': '10.8.0.46',
+        'host': '172.11.51.3',
+        'port': 6000
     }
 else:
     DEBUG = True

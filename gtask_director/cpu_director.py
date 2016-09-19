@@ -11,14 +11,16 @@ import time
 from datetime import datetime
 import requests
 from env import mongo_config
-from gtask_db.mission import Mission, Machine, db
+from gtask_db import db
+from gtask_db.cpu_mission import Mission
+from gtask_db.machine import Machine
 
 SLEEP = 15
 MISSION_LIMIT = 20
 
 
 def update_machine():
-    machines = Machine.objects().all()
+    machines = Machine.objects(accept_jobs__contains='cpu').all()
     updated_machines = list()
     for m in machines:
         try:
@@ -34,24 +36,30 @@ def update_machine():
     return updated_machines
 
 
-def update_mission():
-    machines = Machine.objects().all()
+def update_mission(machines):
     for m in machines:
         r = requests.get("http://%s/containers/json?all=1" % m['host']).json()
-        m['containers'] = '          '.join(['%s: %s' % (_c['Names'][0], _c['State']) for _c in r])
-        m.save()
+        # m['containers'] = '          '.join(['%s: %s' % (_c['Names'][0], _c['State']) for _c in r])
+        # m.save()
+        container_dict = dict()
         for c in r:
-            if c['State'] == 'exited':
-                mission = Mission.objects(running_id=c['Id']).first()
-                if mission:
-                    mission['status'] = 'finished'
-                    mission['finish_time'] = datetime.now()
+            container_dict[c['Id']] = c
+
+        started_missions = Mission.objects(status="started", machine=m["name"]).all()
+        for mission in started_missions:
+            if mission['running_id'] not in container_dict:
+                mission['status'] = "failed"
+                mission.save()
+            elif container_dict[mission['running_id']]['State'] == 'exited':
+                mission['status'] = 'finished'
+                mission['finish_time'] = datetime.now()
+                resp = requests.delete("http://%s/containers/%s" % (m['host'], mission['running_id'][:12]))
+                if resp.status_code >= 400:
+                    logging.error("delete failed. url={}".format(("http://%s/containers/%s" % (m['host'], mission['running_id'][:12]))))
+                else:
                     mission.save()
-                    resp = requests.delete("http://%s/containers/%s" % (m['host'], c['Id'][:12]))
-                    if resp.status_code >= 400:
-                        logging.error("delete failed. url={}".format(("http://%s/containers/%s" % (m['host'], c['Id'][:12]))))
-                    else:
-                        logging.info("delete succeed. name=" + mission['name'])
+                    logging.info("delete succeed. name=" + mission['name'])
+    pass
 
 
 def deploy_mission(machine, mission):
@@ -67,7 +75,10 @@ def deploy_mission(machine, mission):
     create_url = 'http://' + machine['host'] + '/containers/create?name=%s' % mission['name']
     start_url = 'http://' + machine['host'] + '/containers/{}/start'
     try:
-        r = requests.post(create_url, json=post_data).json()
+        resp = requests.post(create_url, json=post_data)
+        if resp.status_code >= 400:
+            raise Exception('create failed. code={}. {}'.format(resp.status_code, resp.text))
+        r = resp.json()
         mission['running_id'] = r['Id']
         mission['running_machine'] = machine['name']
         mission['start_time'] = datetime.now()
@@ -96,6 +107,6 @@ if __name__ == '__main__':
                host="%s:%s" % (mongo_config['host'], mongo_config['port']))
     while True:
         machines = update_machine()
-        update_mission()
+        update_mission(machines)
         deploy(machines)
-        time.sleep(15)
+        time.sleep(SLEEP)
