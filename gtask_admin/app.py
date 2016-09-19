@@ -4,14 +4,12 @@ import logging
 import os
 import sys
 
-
 self_dir = os.path.abspath(os.path.join(__file__, os.pardir)) + '/'
 work_dir = os.path.abspath(os.path.join(__file__, os.pardir, os.pardir)) + '/'
 if work_dir not in sys.path:
     sys.path.insert(0, work_dir)
 from gtask_db.cpu_mission import Mission
-
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, redirect
 import flask_admin as admin
 from env import mongo_config
 
@@ -49,6 +47,11 @@ def create_mission():
         else:
             failed_mission.append(mission.get('name', 'unknown') + ' need arg ' + p)
     return jsonify(dict(failed_missions=failed_mission))
+
+
+@app.route('/')
+def index():
+    return redirect('/admin/machine/')
 
 
 # Create admin
