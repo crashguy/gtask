@@ -35,6 +35,7 @@ def init_gpu():
             m['gpu_last_update'] = datetime.now()
             m.save()
         except Exception as e:
+            logging.error('%s init failed' % m['name'])
             logging.error(e)
             raise
 
@@ -76,8 +77,11 @@ def update_machine():
 
 def update_mission():
     missions = GpuMission.objects(status='running').all()
+    machines = Machine.objects().all()
+    machine_dict = {m['name']: m for m in machines}
+
     for mission in missions:
-        r = requests.get("http://%s/containers/%s/json" % mission['running_machine']['plugin'], mission['running_id'][:12]).json()
+        r = requests.get("http://%s/containers/%s/json" % (machine_dict[mission['running_machine']]['plugin'], mission['running_id'][:12])).json()
         mission['status'] = r['State']['Status']
         if mission['status'] != 'running':
             mission['finish_time'] = datetime.now()
