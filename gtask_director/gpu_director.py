@@ -81,7 +81,7 @@ def update_mission():
     machine_dict = {m['name']: m for m in machines}
 
     for mission in missions:
-        r = requests.get("http://%s/containers/%s/json" % (machine_dict[mission['running_machine']]['plugin'], mission['running_id'][:12])).json()
+        r = requests.get("http://%s/containers/%s/json" % (machine_dict[mission['running_machine']]['host'], mission['running_id'][:12])).json()
         mission['status'] = r['State']['Status']
         if mission['status'] != 'running':
             mission['finish_time'] = datetime.now()
