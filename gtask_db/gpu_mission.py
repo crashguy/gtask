@@ -5,7 +5,7 @@ from gtask_db import db
 
 class GpuMission(db.Document):
     name = db.StringField(max_length=128)
-    docker = db.StringField(max_length=40)
+    docker = db.StringField(max_length=100)
     machine = db.StringField(max_length=40)
     volumes = db.StringField(max_length=128)
     gpu_num = db.IntField()
