@@ -59,7 +59,7 @@ def pid_formatter(view, context, model, name):
 
 
 def running_log_formatter(view, context, model, name):
-    return Markup('<a href="/gpu_task/{task_name}/log/">查看log</a>'.format(
+    return Markup('<a href="/gpu_task/{task_name}/log/">view log</a>'.format(
         task_name=model['name']
     ))
 
