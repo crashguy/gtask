@@ -43,7 +43,7 @@ def show_machine_name_formatter(view, context, model, name):
     return model[name]['name']
 
 
-def pid_formatter_formatter(view, context, model, name):
+def pid_formatter(view, context, model, name):
     pids = model[name]
     if not pids:
         return ''
@@ -55,6 +55,11 @@ def pid_formatter_formatter(view, context, model, name):
     else:
         return '%s' % model[name]
 
+
+def running_log_formatter(view, context, model, name):
+    return Markup('<a href="/gpu_task/{task_name}/log/">查看log</a>'.format(
+        task_name=model['name']
+    ))
 
 class CpuMissionView(ModelView):
     column_list = ['name', 'job', 'status', 'running_machine', 'start_time', 'finish_time']
@@ -81,14 +86,16 @@ class MachineView(ModelView):
 
 
 class GpuMissionView(ModelView):
-    column_list = ['name', 'status', 'machine', 'running_machine', 'running_gpu',
-                   'running_id', 'running_pid', 'arrange_time', 'start_time',
-                   'finish_time', 'error_log']
+    column_list = ['name', 'status', 'machine', 'update_time', 'running_machine', 'running_gpu',
+                   'running_pid', 'arrange_time', 'start_time',
+                   'finish_time', 'error_log', 'running_log']
     form_columns = ['name', 'status', 'docker', 'machine', 'volumes', 'gpu_num', 'repo',
                     'branch', 'command', 'git_username', 'git_passwd']
     column_formatters = dict(
         start_time=datetime_formatter,
-        finish_time=datetime_formatter
+        finish_time=datetime_formatter,
+        update_time=datetime_formatter,
+        running_log=running_log_formatter
     )
 
 
@@ -102,5 +109,5 @@ class GpuView(ModelView):
         init_time=datetime_formatter,
         last_update=datetime_formatter,
         machine=show_machine_name_formatter,
-        processes=pid_formatter_formatter
+        processes=pid_formatter
     )

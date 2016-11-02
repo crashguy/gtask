@@ -24,7 +24,9 @@ class GpuMission(db.Document):
     running_id = db.StringField(max_length=70)
     running_pid = db.StringField(max_length=30)
     error_log = db.StringField()
+    running_log = db.StringField()
 
     arrange_time = db.DateTimeField()
     start_time = db.DateTimeField()
     finish_time = db.DateTimeField()
+    update_time = db.DateTimeField()

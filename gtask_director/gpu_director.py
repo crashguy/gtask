@@ -87,10 +87,16 @@ def update_mission():
     machine_dict = {m['name']: m for m in machines}
 
     for mission in missions:
-        r = requests.get("http://%s/containers/%s/json" % (machine_dict[mission['running_machine']]['host'], mission['running_id'][:12])).json()
-        mission['status'] = r['State']['Status']
-        if mission['status'] != 'running':
-            mission['finish_time'] = datetime.now()
+        try:
+            log_request = requests.get("http://%s/containers/%s/logs?stdout=1&stderr=1" % (machine_dict[mission['running_machine']]['host'], mission['running_id'][:12]))
+            mission['running_log'] = log_request.text
+            r = requests.get("http://%s/containers/%s/json" % (machine_dict[mission['running_machine']]['host'], mission['running_id'][:12])).json()
+            mission['status'] = r['State']['Status']
+            if mission['status'] != 'running':
+                mission['finish_time'] = datetime.now()
+        except Exception as e:
+            mission['error_log'] = str(e)
+        mission['update_time'] = datetime.now()
         mission.save()
 
 

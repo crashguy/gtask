@@ -9,7 +9,8 @@ work_dir = os.path.abspath(os.path.join(__file__, os.pardir, os.pardir)) + '/'
 if work_dir not in sys.path:
     sys.path.insert(0, work_dir)
 from gtask_db.cpu_mission import Mission
-from flask import Flask, request, jsonify, redirect
+from gtask_db.gpu_mission import GpuMission
+from flask import Flask, request, jsonify, redirect, render_template
 import flask_admin as admin
 from env import mongo_config
 
@@ -53,6 +54,15 @@ def create_mission():
 def index():
     return redirect('/admin/machine/')
 
+#.replace("\00\00\00\00\00\00", "\n")
+@app.route('/gpu_task/<string:task_name>/log/')
+def gpu_task_log(task_name):
+    gpu_mission = GpuMission.objects(name=task_name).first()
+    if not gpu_mission:
+        return "no gpu_mission named {}".format(task_name)
+    else:
+        return render_template("logs.html", task_name=task_name,
+                               content=gpu_mission['running_log'])
 
 # Create admin
 gtask_admin = admin.Admin(app, 'Tracker Admin')
