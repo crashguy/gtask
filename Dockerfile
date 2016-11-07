@@ -4,7 +4,7 @@
 ############################################################
 
 # Set the base image to use to Ubuntu
-FROM ubuntu:14.04
+FROM python:3.5
 
 # Set the file maintainer (your name - the file's author)
 MAINTAINER linan
@@ -19,7 +19,6 @@ ENV DOCKYARD_SRVPROJ=/srv
 
 # Update the default application repository sources list
 RUN apt-get update && apt-get -y upgrade
-RUN apt-get install -y python python-pip
 
 # Create application subdirectories
 WORKDIR $DOCKYARD_SRVHOME

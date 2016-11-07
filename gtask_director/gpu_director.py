@@ -77,7 +77,7 @@ def update_machine():
             updated_machines.append(m)
         except Exception as e:
             logging.error(e)
-            raise
+            # raise
     return updated_machines
 
 

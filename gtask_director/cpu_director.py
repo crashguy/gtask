@@ -20,6 +20,11 @@ MISSION_LIMIT = 20
 
 
 def update_machine():
+    # offline all gpus
+    all_machines = Machine.objects().all()
+    for m in all_machines:
+        m['container_num'] = 0
+        m.save()
     machines = Machine.objects(accept_jobs__contains='cpu').all()
     updated_machines = list()
     for m in machines:
