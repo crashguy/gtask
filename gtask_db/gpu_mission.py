@@ -11,7 +11,7 @@ class GpuMission(db.Document):
     gpu_num = db.IntField()
     repo = db.StringField(max_length=128)
     branch = db.StringField(max_length=40)
-    command = db.StringField(max_length=256)
+    command = db.StringField(max_length=1024)
 
     git_username = db.StringField(max_length=30)
     git_passwd = db.StringField(max_length=30)
