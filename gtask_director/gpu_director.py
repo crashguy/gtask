@@ -143,7 +143,7 @@ def deploy_mission(machine, mission, re_run=False):
                          for cuda_lib in machine['cuda_libs']
                          ] + machine['ro_cuda_libs'] +
                      ['%s:%s' % (config['disk_path'], config['disk_path'])] +
-                     ['%s:%s' % (config['disk_path'], config['disk_path'])],
+                     ['%s:%s' % (output_path, output_path)],
             "Devices": [{"PathOnHost": machine['available_gpus'][i],
                          "PathInContainer": "/dev/nvidia%d" % i,
                          "CgroupPermissions": "mrw"}
