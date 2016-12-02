@@ -12,7 +12,7 @@ from datetime import datetime
 import requests
 from env import mongo_config
 from gtask_db import db
-from gtask_db.gpu_mission import GpuMission
+from gtask_db.gpu_mission import GpuMission, GpuMissionConfig
 from gtask_db.machine import Machine, Gpu
 from collections import defaultdict
 
@@ -81,6 +81,18 @@ def update_machine():
     return updated_machines
 
 
+def check_result(mission):
+    finish_tag = "Mission Done!!!"
+    mission['finish_time'] = datetime.now()
+    if finish_tag in mission['running_log']:
+        mission['status'] = "done"
+    else:
+        mission['status'] = "aborted"
+        mission['pre_logs'] += mission['running_log'] + '\n' + '-'*50 + '\n'*2
+        mission['running_log'] = ''
+    mission.save()
+
+
 def update_mission():
     missions = GpuMission.objects(status='running').all()
     machines = Machine.objects().all()
@@ -93,14 +105,28 @@ def update_mission():
             r = requests.get("http://%s/containers/%s/json" % (machine_dict[mission['running_machine']]['host'], mission['running_id'][:12])).json()
             mission['status'] = r['State']['Status']
             if mission['status'] != 'running':
-                mission['finish_time'] = datetime.now()
+                check_result(mission)
         except Exception as e:
             mission['error_log'] = str(e)
         mission['update_time'] = datetime.now()
         mission.save()
 
 
-def deploy_mission(machine, mission):
+def deploy_mission(machine, mission, re_run=False):
+    config = GpuMissionConfig.objects(gpu_mission_name=mission['name']).first()
+    if not config or not config["content"]:
+        logging.error("config not ready")
+        mission['status'] = 'start failed'
+        return
+
+    # save config
+    with open(config['disk_path'], 'w') as f:
+        f.write(config['content'])
+
+    output_path = "/data/speech_output/{}".format(mission['name'])
+    mission_command = mission['command']
+    if re_run:
+        mission['command'] += " -m {} ".format(output_path)
     post_data = {
         "Image": mission['docker'],
         "Volumes": {
@@ -110,12 +136,14 @@ def deploy_mission(machine, mission):
         "Entrypoint": ["python", "-u", "entry.py",
                        mission['git_username'], mission['git_passwd'],
                        mission['repo'], mission['branch'],
-                       mission['command']],
+                       mission_command],
         "HostConfig": {
             "Binds": [
                          '%s:%s' % (cuda_lib, cuda_lib)
                          for cuda_lib in machine['cuda_libs']
-                         ] + machine['ro_cuda_libs'],
+                         ] + machine['ro_cuda_libs'] +
+                     ['%s:%s' % (config['disk_path'], config['disk_path'])] +
+                     ['%s:%s' % (config['disk_path'], config['disk_path'])],
             "Devices": [{"PathOnHost": machine['available_gpus'][i],
                          "PathInContainer": "/dev/nvidia%d" % i,
                          "CgroupPermissions": "mrw"}
@@ -152,6 +180,19 @@ def deploy_mission(machine, mission):
     mission.save()
 
 
+def rerun(machines):
+    for machine in machines:
+        rest_gpus = len(machine['available_gpus'])
+        if rest_gpus == 0:
+            continue
+        next_job = GpuMission.objects(running_machine=machine['name'], status='aborted').first()
+        if not next_job:
+            continue
+        if next_job['gpu_num'] > rest_gpus:
+            continue
+        deploy_mission(machine, next_job, re_run=True)
+
+
 def deploy(machines):
     for machine in machines:
         rest_gpus = len(machine['available_gpus'])
@@ -172,5 +213,6 @@ if __name__ == '__main__':
     while True:
         machines = update_machine()
         update_mission()
+        rerun(machines)
         deploy(machines)
         time.sleep(SLEEP)

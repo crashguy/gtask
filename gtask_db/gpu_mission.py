@@ -23,10 +23,20 @@ class GpuMission(db.Document):
     running_gpu = db.ListField(db.StringField())
     running_id = db.StringField(max_length=70)
     running_pid = db.StringField(max_length=30)
-    error_log = db.StringField()
+    error_log = db.StringField(default='')
+    pre_logs = db.StringField(default='')
     running_log = db.StringField()
 
     arrange_time = db.DateTimeField()
     start_time = db.DateTimeField()
     finish_time = db.DateTimeField()
     update_time = db.DateTimeField()
+
+
+class GpuMissionConfig(db.Document):
+    # name = db.StringField()
+    gpu_mission_name = db.StringField(max_length=128)
+    config_file_path = db.StringField(default="speech/config.py")
+    content = db.StringField()
+    disk_path = db.StringField()
+

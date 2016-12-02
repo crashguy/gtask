@@ -5,8 +5,10 @@ from datetime import datetime, timedelta
 from flask import Markup
 from flask_admin.contrib.mongoengine import ModelView
 
-from gtask_db.gpu_mission import GpuMission
+from gtask_db.gpu_mission import GpuMission, GpuMissionConfig
 from gtask_db.machine import Machine
+
+from util.util import get_config
 
 
 def datetime_formatter(view, context, model, name):
@@ -63,6 +65,7 @@ def running_log_formatter(view, context, model, name):
         task_name=model['name']
     ))
 
+
 class CpuMissionView(ModelView):
     column_list = ['name', 'job', 'status', 'running_machine', 'start_time', 'finish_time']
     form_columns = ['job', 'name', 'docker', 'machine', 'volumes', 'command', 'status']
@@ -92,13 +95,26 @@ class GpuMissionView(ModelView):
                    'running_pid', 'arrange_time', 'start_time',
                    'finish_time', 'error_log', 'running_log']
     form_columns = ['name', 'status', 'docker', 'machine', 'volumes', 'gpu_num', 'repo',
-                    'branch', 'command', 'git_username', 'git_passwd']
+                    'branch', 'command', 'git_username', 'git_passwd', 'error_log']
     column_formatters = dict(
         start_time=datetime_formatter,
         finish_time=datetime_formatter,
         update_time=datetime_formatter,
         running_log=running_log_formatter
     )
+
+    def on_model_change(self, form, model, is_created):
+        if is_created:
+            config = GpuMissionConfig(gpu_mission_name=model['name'],
+                                      content=get_config(model['repo'], model['branch'], 'speech/config.py'),
+                                      disk_path='/zfs/octp/configs/{}_config.py'.format(model['name']))
+            config.save()
+
+
+class GpuMissionConfigView(ModelView):
+    column_list = ['gpu_mission_name', 'repo', 'branch', 'config_file_path']
+    form_columns = ['content']
+    edit_template = "models/_edit.html"
 
 
 class GpuView(ModelView):

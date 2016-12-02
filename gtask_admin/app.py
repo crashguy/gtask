@@ -54,15 +54,24 @@ def create_mission():
 def index():
     return redirect('/admin/machine/')
 
-#.replace("\00\00\00\00\00\00", "\n")
+
 @app.route('/gpu_task/<string:task_name>/log/')
 def gpu_task_log(task_name):
     gpu_mission = GpuMission.objects(name=task_name).first()
     if not gpu_mission:
         return "no gpu_mission named {}".format(task_name)
     else:
+        _log = gpu_mission['running_log']
+        if gpu_mission['pre_logs']:
+            _log = gpu_mission['pre_logs'] + _log
         return render_template("logs.html", task_name=task_name,
-                               content=gpu_mission['running_log'])
+                               content=_log)
+
+
+# edit config page
+@app.route('/edit_config/')
+def config_edit():
+    return render_template("config.html")
 
 # Create admin
 gtask_admin = admin.Admin(app, 'Tracker Admin')

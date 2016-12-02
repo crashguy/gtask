@@ -8,11 +8,12 @@ if work_dir not in sys.path:
 
 from env import DEBUG, PORT
 from gtask_admin.app import gtask_admin, app, mongo_config
-from gtask_admin.views.views import CpuMissionView, MachineView, GpuMissionView, GpuView
+from gtask_admin.views.views import CpuMissionView, MachineView, \
+    GpuMissionView, GpuMissionConfigView, GpuView
 from gtask_db import db
 from gtask_db.machine import Machine, Gpu
 from gtask_db.cpu_mission import Mission
-from gtask_db.gpu_mission import GpuMission
+from gtask_db.gpu_mission import GpuMission, GpuMissionConfig
 
 db.connect(mongo_config['DB'],
            host="%s:%s" % (mongo_config['host'], mongo_config['port']))
@@ -20,6 +21,7 @@ db.connect(mongo_config['DB'],
 # db.init_app(app)
 gtask_admin.add_view(CpuMissionView(Mission))
 gtask_admin.add_view(GpuMissionView(GpuMission))
+gtask_admin.add_view(GpuMissionConfigView(GpuMissionConfig))
 gtask_admin.add_view(MachineView(Machine))
 gtask_admin.add_view(GpuView(Gpu))
 
