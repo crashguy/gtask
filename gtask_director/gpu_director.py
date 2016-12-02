@@ -126,7 +126,7 @@ def deploy_mission(machine, mission, re_run=False):
     output_path = "/data/speech_output/{}".format(mission['name'])
     mission_command = mission['command']
     if re_run:
-        mission['command'] += " -m {} ".format(output_path)
+        mission_command += " -m {} ".format(output_path)
     post_data = {
         "Image": mission['docker'],
         "Volumes": {
