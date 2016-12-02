@@ -136,7 +136,7 @@ def deploy_mission(machine, mission, re_run=False):
         "Entrypoint": ["python", "-u", "entry.py",
                        mission['git_username'], mission['git_passwd'],
                        mission['repo'], mission['branch'],
-                       mission_command],
+                       mission_command, config['disk_path']],
         "HostConfig": {
             "Binds": [
                          '%s:%s' % (cuda_lib, cuda_lib)
