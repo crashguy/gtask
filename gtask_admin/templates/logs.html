@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <title>{{task_name}} Log</title>
+    <script src="{{url_for('static', filename='js/jquery.js')}}"></script>
 </head>
 <body>
 <textarea style="width:100%;height:540px" readonly="readonly" id="log">
 {{content}}
 </textarea>
 <script>
-    $('textarea#log').ScrollTop(540);
+    $('textarea#log').scrollTop(1000000);
 </script>
 </body>
 </html>
