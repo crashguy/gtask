@@ -127,6 +127,7 @@ def deploy_mission(machine, mission, re_run=False):
     mission_command = mission['command']
     if re_run:
         mission_command += " -m {} ".format(output_path)
+        mission_command += ' -e LD_PRELOAD="/usr/lib/libtcmalloc.so" '
     post_data = {
         "Image": mission['docker'],
         "Volumes": {
@@ -161,7 +162,18 @@ def deploy_mission(machine, mission, re_run=False):
     try:
         resp = requests.post(create_url, json=post_data)
         if resp.status_code >= 400:
-            raise Exception('create failed. code={}. {}'.format(resp.status_code, resp.text))
+            if resp.status_code == 409:
+                # try to delete exist container
+                delete_url = 'http://' + machine['host'] + '/containers/{}'.format(mission['name'])
+                delete_resp = requests.delete(delete_url)
+                if delete_resp.status_code == 204:
+                    resp = requests.post(create_url, json=post_data)
+                    if resp.status_code >= 400:
+                        raise Exception('create failed. code={}. {}'.format(resp.status_code, resp.text))
+                else:
+                    raise Exception('delete {} failed. code={}. {}'.format(mission['name'], delete_resp.status_code, delete_resp.text))
+            else:
+                raise Exception('create failed. code={}. {}'.format(resp.status_code, resp.text))
         r = resp.json()
         mission['running_id'] = r['Id']
         mission['running_machine'] = machine['name']
