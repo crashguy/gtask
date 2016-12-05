@@ -129,7 +129,7 @@ def deploy_mission(machine, mission, re_run=False):
         mission_command += " -m {} ".format(output_path)
     post_data = {
         "Image": mission['docker'],
-        "Env": ['LD_PRELOAD="/usr/lib/libtcmalloc.so"'],
+        "Env": ["LD_PRELOAD=/usr/lib/libtcmalloc.so"],
         "Volumes": {
             cuda_lib: {}
             for cuda_lib in machine['cuda_libs']

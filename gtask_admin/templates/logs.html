@@ -5,8 +5,11 @@
     <title>{{task_name}} Log</title>
 </head>
 <body>
-<textarea style="width:100%;height:1000px" readonly="readonly">
+<textarea style="width:100%;height:540px" readonly="readonly" id="log">
 {{content}}
 </textarea>
+<script>
+    $('textarea#log').ScrollTop(540);
+</script>
 </body>
 </html>
