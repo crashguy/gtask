@@ -9,11 +9,12 @@ work_dir = os.path.abspath(os.path.join(__file__, os.pardir, os.pardir)) + '/'
 if work_dir not in sys.path:
     sys.path.insert(0, work_dir)
 from gtask_db.cpu_mission import Mission
-from gtask_db.gpu_mission import GpuMission
+from gtask_db.gpu_mission import GpuMission, GpuMissionConfig
 from flask import Flask, request, jsonify, redirect, render_template
 import flask_admin as admin
 from env import mongo_config
 
+from util.util import get_config
 logging.basicConfig(filename=work_dir + 'gtask_admin/log/request_mapping.log',
                     level=logging.DEBUG,
                     filemode='a',
@@ -69,9 +70,24 @@ def gpu_task_log(task_name):
 
 
 # edit config page
-@app.route('/edit_config/')
+@app.route('/load_config/', methods=['POST'])
 def config_edit():
-    return render_template("config.html")
+    gpu_mission_name = request.form['gpu_mission_name']
+    repo = request.form['repo']
+    branch = request.form['branch']
+    config = GpuMissionConfig.objects(gpu_mission_name=gpu_mission_name).first()
+    if config:
+        return 'config exists already'
+
+    config = GpuMissionConfig(gpu_mission_name=gpu_mission_name,
+                              content=get_config(repo, branch, 'speech/config.py'),
+                              disk_path='/zfs/octp/configs/{}_config.py'.format(gpu_mission_name))
+    if config['content']:
+        config.save()
+        return 'load config completed'
+    else:
+        return 'load config failed'
+
 
 # Create admin
 gtask_admin = admin.Admin(app, 'Tracker Admin')

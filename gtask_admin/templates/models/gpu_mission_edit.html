@@ -1,0 +1,25 @@
+{% extends "admin/model/edit.html" %}
+{% block head %}
+    {{ super() }}
+     <script src="{{url_for('static', filename='js/jquery.js')}}"></script>
+
+{% endblock %}
+
+{% block tail %}
+    {{ super() }}
+<script>
+$('input#load_config').click(function(){
+    $.post('/load_config/',
+        {
+            "gpu_mission_name": $('input#name').val(),
+            "repo": $('input#repo').val(),
+            "branch": $('input#branch').val()
+        },
+        function(data){
+        alert(data);
+    });
+});
+</script>
+
+
+{% endblock %}

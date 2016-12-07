@@ -8,7 +8,7 @@ def get_config(repo, branch, path):
         repo = repo[11:]
     url = "https://crashguy:cc860808@api.github.com/repos/{repo}/contents/{path}?ref={branch}".format(repo=repo, path=path, branch=branch)
     try:
-        r = base64.b64decode(requests.get(url).json()['content']).decode()
+        r = base64.b64decode(requests.get(url, timeout=10).json()['content']).decode()
     except Exception as e:
         logging.error('get config error', str(e))
         r = ""

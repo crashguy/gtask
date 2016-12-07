@@ -117,11 +117,11 @@ def deploy_mission(machine, mission, re_run=False):
     if not config or not config["content"]:
         logging.error("config not ready")
         mission['status'] = 'start failed'
-        return
-
-    # save config
-    with open(config['disk_path'], 'w') as f:
-        f.write(config['content'])
+        config = {'disk_path': ''}
+    else:
+        # save config
+        with open(config['disk_path'], 'w') as f:
+            f.write(config['content'])
 
     output_path = "/data/speech_output/{}".format(mission['name'])
     mission_command = mission['command']
@@ -143,7 +143,6 @@ def deploy_mission(machine, mission, re_run=False):
                          '%s:%s' % (cuda_lib, cuda_lib)
                          for cuda_lib in machine['cuda_libs']
                          ] + machine['ro_cuda_libs'] +
-                     ['%s:%s' % (config['disk_path'], config['disk_path'])] +
                      ['%s:%s' % (output_path, output_path)],
             "Devices": [{"PathOnHost": machine['available_gpus'][i],
                          "PathInContainer": "/dev/nvidia%d" % i,
@@ -156,6 +155,9 @@ def deploy_mission(machine, mission, re_run=False):
     }
     if mission['volumes']:
         post_data['HostConfig']['Binds'].extend([v.strip() for v in mission['volumes'].split(',')])
+
+    if config['disk_path']:
+        post_data['HostConfig']['Binds'] += ['%s:%s' % (config['disk_path'], config['disk_path'])]
 
     create_url = 'http://' + machine['host'] + '/containers/create?name=%s' % mission['name']
     start_url = 'http://' + machine['host'] + '/containers/{}/start'

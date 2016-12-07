@@ -4,11 +4,11 @@ from datetime import datetime, timedelta
 
 from flask import Markup
 from flask_admin.contrib.mongoengine import ModelView
+from wtforms.fields import StringField
+from wtforms.widgets import TextInput, HTMLString
 
-from gtask_db.gpu_mission import GpuMission, GpuMissionConfig
+from gtask_db.gpu_mission import GpuMission
 from gtask_db.machine import Machine
-
-from util.util import get_config
 
 
 def datetime_formatter(view, context, model, name):
@@ -66,6 +66,20 @@ def running_log_formatter(view, context, model, name):
     ))
 
 
+class MissionNameInputs(TextInput):
+    def __call__(self, field, **kwargs):
+        button_html = '&nbsp;&nbsp;&nbsp; <input type="button" id="load_config" value="load_config"/>'
+        kwargs.setdefault('id', field.id)
+        kwargs.setdefault('type', self.input_type)
+        if 'value' not in kwargs:
+            kwargs['value'] = field._value()
+        return HTMLString('<input %s>' % self.html_params(name=field.name, **kwargs) + button_html)
+
+
+class MissionNameFields(StringField):
+    widget = MissionNameInputs()
+
+
 class CpuMissionView(ModelView):
     column_list = ['name', 'job', 'status', 'running_machine', 'start_time', 'finish_time']
     form_columns = ['job', 'name', 'docker', 'machine', 'volumes', 'command', 'status']
@@ -103,18 +117,18 @@ class GpuMissionView(ModelView):
         running_log=running_log_formatter
     )
 
-    def on_model_change(self, form, model, is_created):
-        if is_created:
-            config = GpuMissionConfig(gpu_mission_name=model['name'],
-                                      content=get_config(model['repo'], model['branch'], 'speech/config.py'),
-                                      disk_path='/zfs/octp/configs/{}_config.py'.format(model['name']))
-            config.save()
+    form_overrides = dict(
+        name=MissionNameFields
+    )
+    create_template = "models/gpu_mission_edit.html"
+    edit_template = "models/gpu_mission_edit.html"
 
 
 class GpuMissionConfigView(ModelView):
     column_list = ['gpu_mission_name', 'repo', 'branch', 'config_file_path']
     form_columns = ['content']
-    edit_template = "models/_edit.html"
+    can_create = False
+    edit_template = "models/config_edit.html"
 
 
 class GpuView(ModelView):
