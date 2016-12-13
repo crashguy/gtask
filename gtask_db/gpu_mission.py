@@ -32,6 +32,8 @@ class GpuMission(db.Document):
     finish_time = db.DateTimeField()
     update_time = db.DateTimeField()
 
+    abort_times = db.IntField(default=0)
+
 
 class GpuMissionConfig(db.Document):
     # name = db.StringField()

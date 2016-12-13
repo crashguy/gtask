@@ -87,9 +87,14 @@ def check_result(mission):
     if finish_tag in mission['running_log']:
         mission['status'] = "done"
     else:
-        mission['status'] = "aborted"
         mission['pre_logs'] += mission['running_log'] + '\n' + '-'*50 + '\n'*2
         mission['running_log'] = ''
+        mission['abort_times'] += 1
+        if mission['abort_times'] <= 10:
+            mission['status'] = "aborted"
+        else:
+            mission['status'] = "aborted 10+ times."
+
     mission.save()
 
 
@@ -123,7 +128,8 @@ def deploy_mission(machine, mission, re_run=False):
         with open(config['disk_path'], 'w') as f:
             f.write(config['content'])
 
-    output_path = "/data/speech_output/{}".format(mission['name'])
+    speech_path = "/ssd/speech"
+    output_path = "/ssd/speech_output/{}".format(mission['name'])
     mission_command = mission['command']
     if re_run:
         mission_command += " -m {}/latest ".format(output_path)
@@ -155,6 +161,8 @@ def deploy_mission(machine, mission, re_run=False):
     }
     if mission['volumes']:
         post_data['HostConfig']['Binds'].extend([v.strip() for v in mission['volumes'].split(',')])
+
+    post_data['HostConfig']['Binds'] += ['%s:%s' % (speech_path, speech_path)]
 
     if config['disk_path']:
         post_data['HostConfig']['Binds'] += ['%s:%s' % (config['disk_path'], config['disk_path'])]

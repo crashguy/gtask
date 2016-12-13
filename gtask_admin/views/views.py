@@ -125,8 +125,8 @@ class GpuMissionView(ModelView):
 
 
 class GpuMissionConfigView(ModelView):
-    column_list = ['gpu_mission_name', 'repo', 'branch', 'config_file_path']
-    form_columns = ['content']
+    column_list = ['gpu_mission_name', 'config_file_path']
+    form_columns = ['gpu_mission_name', 'content']
     can_create = False
     edit_template = "models/config_edit.html"
 
