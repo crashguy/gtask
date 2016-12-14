@@ -33,6 +33,7 @@ class GpuMission(db.Document):
     update_time = db.DateTimeField()
 
     abort_times = db.IntField(default=0)
+    max_abort_times = db.IntField(default=10)
 
 
 class GpuMissionConfig(db.Document):

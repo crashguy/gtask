@@ -108,7 +108,7 @@ class GpuMissionView(ModelView):
     column_list = ['name', 'status', 'machine', 'update_time', 'running_machine', 'running_gpu',
                    'running_pid', 'arrange_time', 'start_time',
                    'finish_time', 'error_log', 'running_log']
-    form_columns = ['name', 'status', 'docker', 'machine', 'volumes', 'gpu_num', 'repo',
+    form_columns = ['name', 'max_abort_times', 'status', 'docker', 'machine', 'volumes', 'gpu_num', 'repo',
                     'branch', 'command', 'git_username', 'git_passwd', 'error_log']
     column_formatters = dict(
         start_time=datetime_formatter,

@@ -90,10 +90,10 @@ def check_result(mission):
         mission['pre_logs'] += mission['running_log'] + '\n' + '-'*50 + '\n'*2
         mission['running_log'] = ''
         mission['abort_times'] += 1
-        if mission['abort_times'] <= 10:
+        if mission['abort_times'] <= mission['max_abort_times']:
             mission['status'] = "aborted"
         else:
-            mission['status'] = "aborted 10+ times."
+            mission['status'] = "aborted %d times." % mission['abort_times']
 
     mission.save()
 
