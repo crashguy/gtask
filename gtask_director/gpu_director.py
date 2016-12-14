@@ -130,9 +130,10 @@ def deploy_mission(machine, mission, re_run=False):
 
     speech_path = "/ssd/speech"
     output_path = "/ssd/speech_output/{}".format(mission['name'])
-    mission_command = mission['command']
+    mission_command = mission['command'] + '-w ' + output_path
     if re_run:
-        mission_command += " -m {}/latest ".format(output_path)
+        # mission_command += " -m {}/latest ".format(output_path)
+        pass
     post_data = {
         "Image": mission['docker'],
         "Env": ["LD_PRELOAD=/usr/lib/libtcmalloc.so"],
