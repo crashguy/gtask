@@ -2,11 +2,21 @@ from datetime import datetime
 
 from gtask_db import db
 
+machine_list=[
+    'octp',
+    'octo',
+    'quad0',
+    'quad1',
+    'quad2',
+    'quad3',
+    'quad4',
+    'quad5',
+]
 
 class GpuMission(db.Document):
-    name = db.StringField(max_length=128)
+    name = db.StringField(max_length=128, unique=True)
     docker = db.StringField(max_length=100)
-    machine = db.StringField(max_length=40)
+    machine = db.StringField(max_length=40, choices=machine_list)
     volumes = db.StringField(max_length=128)
     gpu_num = db.IntField()
     repo = db.StringField(max_length=128)
@@ -33,7 +43,7 @@ class GpuMission(db.Document):
     update_time = db.DateTimeField()
 
     abort_times = db.IntField(default=0)
-    max_abort_times = db.IntField(default=10)
+    max_abort_times = db.IntField(default=3)
 
 
 class GpuMissionConfig(db.Document):

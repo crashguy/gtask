@@ -1,0 +1,24 @@
+{% extends 'admin/master.html' %}
+{% block header %}
+{{ super() }}
+    <script src="{{url_for('static', filename='js/jquery.js')}}"></script>
+{% endblock %}
+{% block body %}
+{{ super() }}
+<input type="button" value="cpud log" onclick="window.open('http://172.11.51.3:4243/containers/gtask_cpud/logs?details=1&stdout=1&stderr=1', '_blank')">
+<input type="button" value="gpud log" onclick="window.open('http://172.11.51.3:4243/containers/gtask_gpud/logs?details=1&stdout=1&stderr=1', '_blank')">
+<input type="button" value="cpud restart" onclick="restart('gtask_cpud')">
+<input type="button" value="gpud restart" onclick="restart('gtask_gpud')">
+<script>
+    function restart(task_name){
+        $.post("/restart/" + task_name + '/',
+            {}, function(data){
+            if (data.code==204){
+                alert("restart succeed");
+            } else {
+                alert(data.code);
+            }
+        });
+    }
+</script>
+{% endblock %}

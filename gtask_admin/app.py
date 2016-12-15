@@ -13,8 +13,10 @@ from gtask_db.gpu_mission import GpuMission, GpuMissionConfig
 from flask import Flask, request, jsonify, redirect, render_template
 import flask_admin as admin
 from env import mongo_config
-
+from gtask_admin.views.views import MyHomeView
 from util.util import get_config
+import requests
+
 logging.basicConfig(filename=work_dir + 'gtask_admin/log/request_mapping.log',
                     level=logging.DEBUG,
                     filemode='a',
@@ -77,17 +79,24 @@ def config_edit():
     branch = request.form['branch']
     config = GpuMissionConfig.objects(gpu_mission_name=gpu_mission_name).first()
     if config:
-        return 'config exists already'
+        return jsonify(msg='config exists already, id={}'.format(config.id),
+                       url='/admin/gpumission/edit/?id={}'.format(config.id))
 
     config = GpuMissionConfig(gpu_mission_name=gpu_mission_name,
                               content=get_config(repo, branch, 'speech/config.py'),
                               disk_path='/zfs/octp/configs/{}_config.py'.format(gpu_mission_name))
     if config['content']:
         config.save()
-        return 'load config completed'
+        return jsonify(msg='load config completed', url='/admin/gpumission/edit/?id={}'.format(config.id))
     else:
-        return 'load config failed'
+        return jsonify(msg='load config failed')
 
+
+# restart cpud/gpud
+@app.route("/restart/<container_name>/", methods=['POST', ])
+def restart_daemon(container_name):
+    r = requests.post("http://172.11.51.3:4243/containers/{}/restart?t=5".format(container_name))
+    return jsonify({"code": r.status_code})
 
 # Create admin
-gtask_admin = admin.Admin(app, 'Tracker Admin')
+gtask_admin = admin.Admin(app, 'Tracker Admin', index_view=MyHomeView())

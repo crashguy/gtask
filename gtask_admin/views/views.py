@@ -3,8 +3,10 @@
 from datetime import datetime, timedelta
 
 from flask import Markup
+from flask_admin import expose
+from flask_admin.base import AdminIndexView
 from flask_admin.contrib.mongoengine import ModelView
-from wtforms.fields import StringField
+from wtforms.fields import StringField, SelectField
 from wtforms.widgets import TextInput, HTMLString
 
 from gtask_db.gpu_mission import GpuMission
@@ -109,7 +111,8 @@ class GpuMissionView(ModelView):
                    'running_pid', 'arrange_time', 'start_time',
                    'finish_time', 'error_log', 'running_log']
     form_columns = ['name', 'max_abort_times', 'status', 'docker', 'machine', 'volumes', 'gpu_num', 'repo',
-                    'branch', 'command', 'git_username', 'git_passwd', 'error_log']
+                    'branch', 'command', 'error_log']
+    column_filters = ['status', ]
     column_formatters = dict(
         start_time=datetime_formatter,
         finish_time=datetime_formatter,
@@ -118,7 +121,7 @@ class GpuMissionView(ModelView):
     )
 
     form_overrides = dict(
-        name=MissionNameFields
+        name=MissionNameFields,
     )
     create_template = "models/gpu_mission_edit.html"
     edit_template = "models/gpu_mission_edit.html"
@@ -143,3 +146,9 @@ class GpuView(ModelView):
         machine=show_machine_name_formatter,
         processes=pid_formatter
     )
+
+
+class MyHomeView(AdminIndexView):
+    @expose('/')
+    def index(self):
+        return self.render('home.html')

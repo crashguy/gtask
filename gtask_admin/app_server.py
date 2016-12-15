@@ -19,9 +19,9 @@ db.connect(mongo_config['DB'],
            host="%s:%s" % (mongo_config['host'], mongo_config['port']))
 # Add views
 # db.init_app(app)
-gtask_admin.add_view(CpuMissionView(Mission))
+# gtask_admin.add_view(CpuMissionView(Mission))
 gtask_admin.add_view(GpuMissionView(GpuMission))
-gtask_admin.add_view(GpuMissionConfigView(GpuMissionConfig))
+# gtask_admin.add_view(GpuMissionConfigView(GpuMissionConfig))
 gtask_admin.add_view(MachineView(Machine))
 gtask_admin.add_view(GpuView(Gpu))
 

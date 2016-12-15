@@ -19,9 +19,7 @@ from collections import defaultdict
 SLEEP = 15
 
 
-def init_gpu():
-    Gpu.drop_collection()
-    machines = Machine.objects(accept_jobs__contains='gpu').all()
+def init_gpu(machines):
     for m in machines:
         try:
             r = requests.get("http://%s/gpu/info/json" % m['plugin']).json()
@@ -52,6 +50,9 @@ def update_machine():
     gpus_dict = defaultdict(dict)
     for gpu in gpus:
         gpus_dict[gpu['machine']['name']][gpu['order']] = gpu
+    not_init_machines = [m for m in machines if m['name'] not in gpus_dict]
+    init_gpu(not_init_machines)
+
     updated_machines = list()
     for m in machines:
         try:
@@ -142,7 +143,7 @@ def deploy_mission(machine, mission, re_run=False):
             for cuda_lib in machine['cuda_libs']
             },
         "Entrypoint": ["python", "-u", "entry.py",
-                       mission['git_username'], mission['git_passwd'],
+                       os.environ['GITHUB_USERNAME'], os.environ['GITHUB_PASSWORD'],
                        mission['repo'], mission['branch'],
                        mission_command, config['disk_path']],
         "HostConfig": {
@@ -230,9 +231,12 @@ def deploy(machines):
 
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO)
     db.connect(mongo_config['DB'],
                host="%s:%s" % (mongo_config['host'], mongo_config['port']))
-    init_gpu()
+    logging.info("gpud start")
+    Gpu.drop_collection()
+    init_gpu(Machine.objects(accept_jobs__contains='gpu').all())
     while True:
         machines = update_machine()
         update_mission()

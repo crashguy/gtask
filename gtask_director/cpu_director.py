@@ -108,8 +108,10 @@ def deploy(machines):
 
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO)
     db.connect(mongo_config['DB'],
                host="%s:%s" % (mongo_config['host'], mongo_config['port']))
+    logging.info("cpud start")
     while True:
         machines = update_machine()
         update_mission(machines)
