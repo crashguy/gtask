@@ -41,8 +41,8 @@ def init_gpu():
 
 
 def update_machine():
-    # offline all gpus
-    all_machines = Machine.objects().all()
+    # offline not available gpus
+    all_machines = Machine.objects(accept_jobs__not__contains='gpu').all()
     for m in all_machines:
         m['available_gpus'] = []
         m.save()
@@ -55,7 +55,7 @@ def update_machine():
     updated_machines = list()
     for m in machines:
         try:
-            # m['available_gpus'] = []
+            m['available_gpus'] = []
             r = requests.get("http://%s/gpu/status/json" % m['plugin']).json()
             for i, g in enumerate(r['Devices']):
                 _gpu = gpus_dict[m['name']][i]
