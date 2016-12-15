@@ -18,9 +18,9 @@ class GpuMission(db.Document):
     docker = db.StringField(max_length=100)
     machine = db.StringField(max_length=40, choices=machine_list)
     volumes = db.StringField(max_length=128)
-    gpu_num = db.IntField()
-    repo = db.StringField(max_length=128)
-    branch = db.StringField(max_length=40)
+    gpu_num = db.IntField(default=4)
+    repo = db.StringField(max_length=128, default='github.com/naturali/dnn')
+    branch = db.StringField(max_length=40, default='master')
     command = db.StringField(max_length=1024)
 
     git_username = db.StringField(max_length=30)

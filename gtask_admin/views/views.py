@@ -6,7 +6,7 @@ from flask import Markup
 from flask_admin import expose
 from flask_admin.base import AdminIndexView
 from flask_admin.contrib.mongoengine import ModelView
-from wtforms.fields import StringField, SelectField
+from wtforms.fields import StringField, TextAreaField
 from wtforms.widgets import TextInput, HTMLString
 
 from gtask_db.gpu_mission import GpuMission
@@ -111,7 +111,7 @@ class GpuMissionView(ModelView):
                    'running_pid', 'arrange_time', 'start_time',
                    'finish_time', 'error_log', 'running_log']
     form_columns = ['name', 'max_abort_times', 'status', 'docker', 'machine', 'volumes', 'gpu_num', 'repo',
-                    'branch', 'command', 'error_log']
+                    'branch', 'command']
     column_filters = ['status', ]
     column_formatters = dict(
         start_time=datetime_formatter,
@@ -122,9 +122,11 @@ class GpuMissionView(ModelView):
 
     form_overrides = dict(
         # name=MissionNameFields,
+        command=TextAreaField
     )
     create_template = "models/gpu_mission_edit.html"
     edit_template = "models/gpu_mission_edit.html"
+    column_default_sort = ('start_time', True)
 
 
 class GpuMissionConfigView(ModelView):
