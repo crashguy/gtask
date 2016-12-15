@@ -121,7 +121,7 @@ class GpuMissionView(ModelView):
     )
 
     form_overrides = dict(
-        name=MissionNameFields,
+        # name=MissionNameFields,
     )
     create_template = "models/gpu_mission_edit.html"
     edit_template = "models/gpu_mission_edit.html"
