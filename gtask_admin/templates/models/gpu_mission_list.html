@@ -1,0 +1,27 @@
+{% extends "admin/model/list.html" %}
+{% block head %}
+    {{ super() }}
+     <script src="{{url_for('static', filename='js/jquery.js')}}"></script>
+
+{% endblock %}
+
+{% block tail %}
+    {{ super() }}
+<script>
+$('.stop_mission').click(function(){
+    if (confirm("确认停止本任务?")) {
+        $.post("/stop/" + $(this).attr("machine") + '/' + $(this).attr("mission") + '/',
+            {}, function(data){
+            if (data.code==204){
+                alert("stop succeed");
+                location.reload();
+            } else {
+                alert(data.code);
+            }
+        });
+    }
+});
+</script>
+
+
+{% endblock %}

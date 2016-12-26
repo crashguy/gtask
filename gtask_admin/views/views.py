@@ -68,6 +68,15 @@ def running_log_formatter(view, context, model, name):
     ))
 
 
+def status_formatter(view, context, model, name):
+    if model['status'] == 'running':
+        return Markup('<a href="#" class="stop_mission" mission="{task_name}" machine="{machine_name}">running</a>'.format(
+            task_name=model['name'],
+            machine_name=model['running_machine']
+        ))
+    return model['status']
+
+
 class MissionNameInputs(TextInput):
     def __call__(self, field, **kwargs):
         button_html = '&nbsp;&nbsp;&nbsp; <input type="button" id="load_config" value="load_config"/>'
@@ -117,7 +126,8 @@ class GpuMissionView(ModelView):
         start_time=datetime_formatter,
         finish_time=datetime_formatter,
         update_time=datetime_formatter,
-        running_log=running_log_formatter
+        running_log=running_log_formatter,
+        status=status_formatter
     )
 
     form_overrides = dict(
@@ -126,6 +136,7 @@ class GpuMissionView(ModelView):
     )
     create_template = "models/gpu_mission_edit.html"
     edit_template = "models/gpu_mission_edit.html"
+    list_template = "models/gpu_mission_list.html"
     column_default_sort = ('start_time', True)
 
 
