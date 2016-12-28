@@ -128,6 +128,10 @@ def deploy_mission(machine, mission, re_run=False):
         # save config
         with open(config['disk_path'], 'w') as f:
             f.write(config['content'])
+    # save pre running log
+    if mission['running_log']:
+        mission['pre_logs'] += mission['running_log'] + '\n' + '-'*50 + '\n'*2
+        mission['running_log'] = ''
 
     speech_path = "/ssd/speech"
     output_path = "/ssd/speech_output/{}".format(mission['name'])
