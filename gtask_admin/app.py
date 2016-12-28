@@ -116,6 +116,8 @@ def stop_daemon(machine_name, container_name):
         gpu_mission['status'] = 'manual_aborted'
         gpu_mission['update_time'] = datetime.now()
         gpu_mission['finish_time'] = datetime.now()
+        gpu_mission['pre_logs'] += gpu_mission['running_log'] + '\n' + '-'*50 + '\n'*2
+        gpu_mission['running_log'] = ''
         gpu_mission.save()
     return jsonify({"code": r.status_code})
 
