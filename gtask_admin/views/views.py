@@ -81,13 +81,12 @@ def status_formatter(view, context, model, name):
 def status_key(mission):
     x = mission['status']
     status_mapping = defaultdict(lambda: 10)
-    status_mapping.update(dict(
-        running=1,
-        start_failed=2,
-        finish=3,
-        aborted=4,
-        manual_aborted=5,
-    ))
+    status_mapping['running'] = 1
+    status_mapping['start_failed'] = 2
+    status_mapping['finish'] = 3
+    status_mapping['aborted'] = 4
+    status_mapping['manual_abort'] = 5
+    status_mapping['manual_aborted'] = 5
     return status_mapping[x], x
 
 
