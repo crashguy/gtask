@@ -132,7 +132,7 @@ def deploy_mission(machine, mission, re_run=False):
     # handle log
     mission_log = GpuMissionLog.objects(gpu_mission_name=mission['name']).first()
     if not mission_log:
-        mission_log = GpuMission(gpu_mission_name=mission['name'])
+        mission_log = GpuMissionLog(gpu_mission_name=mission['name'])
         mission_log.save()
     elif mission_log['running_log']:
         mission_log['pre_logs'] += mission_log['running_log'] + '\n' + '-'*50 + '\n'*2

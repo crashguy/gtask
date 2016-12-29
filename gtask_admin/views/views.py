@@ -117,7 +117,7 @@ class MachineView(ModelView):
 
 class GpuMissionView(ModelView):
     column_list = ['name', 'status', 'running_machine', 'running_gpu',
-                   'start_time', 'finish_time', 'running_log']
+                   'start_time', 'finish_time', 'running_log', 'error_log']
     form_columns = ['name', 'max_abort_times', 'status', 'docker', 'machine', 'volumes', 'gpu_num', 'repo',
                     'branch', 'command']
     column_filters = ['status', ]

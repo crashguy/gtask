@@ -12,13 +12,15 @@ def main():
         mission_log = GpuMissionLog.objects(gpu_mission_name=mission['name']).first()
         if not mission_log:
             mission_log = GpuMissionLog(gpu_mission_name=mission['name'])
-        mission_log['pre_logs'] = mission['pre_logs']
-        mission_log['running_log'] = mission['running_log']
-        mission['pre_logs'] = ''
-        mission['running_log'] = ''
-        mission_log.save()
-        mission.save()
-        print('move %s log' % mission['name'])
+            mission_log.save()
+            print('create %s log' % mission['name'])
+        # mission_log['pre_logs'] = mission['pre_logs']
+        # mission_log['running_log'] = mission['running_log']
+        # mission['pre_logs'] = ''
+        # mission['running_log'] = ''
+        # mission_log.save()
+        # mission.save()
+
 
 if __name__ == '__main__':
     main()
