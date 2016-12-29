@@ -10,7 +10,7 @@ if work_dir not in sys.path:
     sys.path.insert(0, work_dir)
 from gtask_db.machine import Machine
 from gtask_db.cpu_mission import Mission
-from gtask_db.gpu_mission import GpuMission, GpuMissionConfig
+from gtask_db.gpu_mission import GpuMission, GpuMissionConfig, GpuMissionLog
 from flask import Flask, request, jsonify, redirect, render_template
 import flask_admin as admin
 from env import mongo_config
@@ -60,13 +60,13 @@ def index():
 
 @app.route('/gpu_task/<string:task_name>/log/')
 def gpu_task_log(task_name):
-    gpu_mission = GpuMission.objects(name=task_name).first()
-    if not gpu_mission:
-        return "no gpu_mission named {}".format(task_name)
+    gpu_mission_log = GpuMissionLog.objects(gpu_mission_name=task_name).first()
+    if not gpu_mission_log:
+        return "no gpu_mission_log named {}".format(task_name)
     else:
-        _log = gpu_mission['running_log']
-        if gpu_mission['pre_logs']:
-            _log = gpu_mission['pre_logs'] + _log
+        _log = gpu_mission_log['running_log']
+        if gpu_mission_log['pre_logs']:
+            _log = gpu_mission_log['pre_logs'] + _log
         return render_template("logs.html", task_name=task_name,
                                content=_log)
 
@@ -116,8 +116,6 @@ def stop_daemon(machine_name, container_name):
         gpu_mission['status'] = 'manual_aborted'
         gpu_mission['update_time'] = datetime.now()
         gpu_mission['finish_time'] = datetime.now()
-        gpu_mission['pre_logs'] += gpu_mission['running_log'] + '\n' + '-'*50 + '\n'*2
-        gpu_mission['running_log'] = ''
         gpu_mission.save()
     return jsonify({"code": r.status_code})
 

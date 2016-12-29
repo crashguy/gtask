@@ -13,6 +13,7 @@ machine_list=[
     'quad5',
 ]
 
+
 class GpuMission(db.Document):
     name = db.StringField(max_length=128, unique=True)
     docker = db.StringField(max_length=100)
@@ -34,9 +35,8 @@ class GpuMission(db.Document):
     running_id = db.StringField(max_length=70)
     running_pid = db.StringField(max_length=30)
     error_log = db.StringField(default='')
-    pre_logs = db.StringField(default='')
-    running_log = db.StringField()
-
+    # pre_logs = db.StringField(default='')
+    # running_log = db.StringField()
     arrange_time = db.DateTimeField()
     start_time = db.DateTimeField()
     finish_time = db.DateTimeField()
@@ -52,4 +52,12 @@ class GpuMissionConfig(db.Document):
     config_file_path = db.StringField(default="speech/config.py")
     content = db.StringField()
     disk_path = db.StringField()
+
+
+class GpuMissionLog(db.Document):
+    # name = db.StringField()
+    gpu_mission_name = db.StringField(max_length=128)
+    pre_logs = db.StringField(default='')
+    running_log = db.StringField(default='')
+
 

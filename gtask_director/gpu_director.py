@@ -12,7 +12,7 @@ from datetime import datetime
 import requests
 from env import mongo_config
 from gtask_db import db
-from gtask_db.gpu_mission import GpuMission, GpuMissionConfig
+from gtask_db.gpu_mission import GpuMission, GpuMissionConfig, GpuMissionLog
 from gtask_db.machine import Machine, Gpu
 from collections import defaultdict
 
@@ -82,14 +82,12 @@ def update_machine():
     return updated_machines
 
 
-def check_result(mission):
+def check_result(mission, mission_log):
     finish_tag = "Mission Done!!!"
     mission['finish_time'] = datetime.now()
-    if finish_tag in mission['running_log']:
+    if finish_tag in mission_log['running_log']:
         mission['status'] = "done"
     else:
-        mission['pre_logs'] += mission['running_log'] + '\n' + '-'*50 + '\n'*2
-        mission['running_log'] = ''
         mission['abort_times'] += 1
         if mission['abort_times'] <= mission['max_abort_times']:
             mission['status'] = "aborted"
@@ -107,11 +105,13 @@ def update_mission():
     for mission in missions:
         try:
             log_request = requests.get("http://%s/containers/%s/logs?stdout=1&stderr=1" % (machine_dict[mission['running_machine']]['host'], mission['running_id'][:12]))
-            mission['running_log'] = log_request.text
+            mission_log = GpuMissionLog(gpu_mission_name=mission['name']).first()
+            mission_log['running_log'] = log_request.text
+            mission_log.save()
             r = requests.get("http://%s/containers/%s/json" % (machine_dict[mission['running_machine']]['host'], mission['running_id'][:12])).json()
             mission['status'] = r['State']['Status']
             if mission['status'] != 'running':
-                check_result(mission)
+                check_result(mission, mission_log)
         except Exception as e:
             mission['error_log'] = str(e)
         mission['update_time'] = datetime.now()
@@ -128,10 +128,16 @@ def deploy_mission(machine, mission, re_run=False):
         # save config
         with open(config['disk_path'], 'w') as f:
             f.write(config['content'])
-    # save pre running log
-    if mission['running_log']:
-        mission['pre_logs'] += mission['running_log'] + '\n' + '-'*50 + '\n'*2
-        mission['running_log'] = ''
+
+    # handle log
+    mission_log = GpuMissionLog.objects(gpu_mission_name=mission['name']).first()
+    if not mission_log:
+        mission_log = GpuMission(gpu_mission_name=mission['name'])
+        mission_log.save()
+    elif mission_log['running_log']:
+        mission_log['pre_logs'] += mission_log['running_log'] + '\n' + '-'*50 + '\n'*2
+        mission_log['running_log'] = ''
+        mission_log.save()
 
     speech_path = "/ssd/speech"
     output_path = "/ssd/speech_output/{}".format(mission['name'])
