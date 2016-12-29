@@ -105,13 +105,14 @@ def update_mission():
     for mission in missions:
         try:
             log_request = requests.get("http://%s/containers/%s/logs?stdout=1&stderr=1" % (machine_dict[mission['running_machine']]['host'], mission['running_id'][:12]))
-            mission_log = GpuMissionLog(gpu_mission_name=mission['name']).first()
+            mission_log = GpuMissionLog.objects(gpu_mission_name=mission['name']).first()
             mission_log['running_log'] = log_request.text
             mission_log.save()
             r = requests.get("http://%s/containers/%s/json" % (machine_dict[mission['running_machine']]['host'], mission['running_id'][:12])).json()
             mission['status'] = r['State']['Status']
             if mission['status'] != 'running':
                 check_result(mission, mission_log)
+            mission['error_log'] = ''
         except Exception as e:
             mission['error_log'] = str(e)
         mission['update_time'] = datetime.now()
