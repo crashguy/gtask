@@ -8,6 +8,7 @@ from flask_admin.base import AdminIndexView
 from flask_admin.contrib.mongoengine import ModelView
 from wtforms.fields import StringField, TextAreaField
 from wtforms.widgets import TextInput, HTMLString
+from collections import defaultdict
 
 from gtask_db.gpu_mission import GpuMission
 from gtask_db.machine import Machine
@@ -77,6 +78,19 @@ def status_formatter(view, context, model, name):
     return model['status']
 
 
+def status_key(mission):
+    x = mission['status']
+    status_mapping = defaultdict(lambda: 10)
+    status_mapping.update(dict(
+        running=1,
+        start_failed=2,
+        finish=3,
+        aborted=4,
+        manual_aborted=5,
+    ))
+    return status_mapping[x], x
+
+
 class MissionNameInputs(TextInput):
     def __call__(self, field, **kwargs):
         button_html = '&nbsp;&nbsp;&nbsp; <input type="button" id="load_config" value="load_config"/>'
@@ -137,6 +151,16 @@ class GpuMissionView(ModelView):
     edit_template = "models/gpu_mission_edit.html"
     list_template = "models/gpu_mission_list.html"
     column_default_sort = ('start_time', True)
+
+    def get_list(self, page, sort_column, sort_desc, search, filters,
+                 execute=True, page_size=None):
+        count, query = super(GpuMissionView, self).get_list(
+            page, sort_column, sort_desc, search, filters, execute, page_size
+        )
+        if not sort_column:
+            new_query = sorted(query, key=status_key)
+            return count, new_query
+        return count, query
 
 
 class GpuView(ModelView):
