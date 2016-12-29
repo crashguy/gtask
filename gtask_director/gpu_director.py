@@ -12,7 +12,7 @@ from datetime import datetime
 import requests
 from env import mongo_config
 from gtask_db import db
-from gtask_db.gpu_mission import GpuMission, GpuMissionConfig, GpuMissionLog
+from gtask_db.gpu_mission import GpuMission, GpuMissionLog
 from gtask_db.machine import Machine, Gpu
 from collections import defaultdict
 
@@ -119,16 +119,7 @@ def update_mission():
 
 
 def deploy_mission(machine, mission, re_run=False):
-    config = GpuMissionConfig.objects(gpu_mission_name=mission['name']).first()
-    if not config or not config["content"]:
-        logging.error("config not ready")
-        mission['status'] = 'start failed'
-        config = {'disk_path': ''}
-    else:
-        # save config
-        with open(config['disk_path'], 'w') as f:
-            f.write(config['content'])
-
+    config_path = ''
     # handle log
     mission_log = GpuMissionLog.objects(gpu_mission_name=mission['name']).first()
     if not mission_log:
@@ -155,7 +146,7 @@ def deploy_mission(machine, mission, re_run=False):
         "Entrypoint": ["python", "-u", "entry.py",
                        os.environ['GITHUB_USERNAME'], os.environ['GITHUB_PASSWORD'],
                        mission['repo'], mission['branch'],
-                       mission_command, config['disk_path']],
+                       mission_command, config_path],
         "HostConfig": {
             "Binds": [
                          '%s:%s' % (cuda_lib, cuda_lib)
@@ -175,9 +166,6 @@ def deploy_mission(machine, mission, re_run=False):
         post_data['HostConfig']['Binds'].extend([v.strip() for v in mission['volumes'].split(',')])
 
     post_data['HostConfig']['Binds'] += ['%s:%s' % (speech_path, speech_path)]
-
-    if config['disk_path']:
-        post_data['HostConfig']['Binds'] += ['%s:%s' % (config['disk_path'], config['disk_path'])]
 
     create_url = 'http://' + machine['host'] + '/containers/create?name=%s' % mission['name']
     start_url = 'http://' + machine['host'] + '/containers/{}/start'
@@ -201,6 +189,7 @@ def deploy_mission(machine, mission, re_run=False):
         mission['running_machine'] = machine['name']
         mission['running_gpu'] = machine['available_gpus'][:mission['gpu_num']]
         mission['start_time'] = datetime.now()
+        mission['finish_time'] = None
         resp = requests.post(start_url.format(r['Id'][:12]))
         if resp.status_code >= 400:
             raise Exception('start failed. code={}. {}'.format(resp.status_code, resp.text))

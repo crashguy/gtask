@@ -117,7 +117,7 @@ class MachineView(ModelView):
 
 class GpuMissionView(ModelView):
     column_list = ['name', 'status', 'running_machine', 'running_gpu',
-                   'start_time', 'finish_time', 'running_log', 'error_log']
+                   'start_time', 'finish_time', 'error_log', 'running_log']
     form_columns = ['name', 'max_abort_times', 'status', 'docker', 'machine', 'volumes', 'gpu_num', 'repo',
                     'branch', 'command']
     column_filters = ['status', ]
@@ -137,13 +137,6 @@ class GpuMissionView(ModelView):
     edit_template = "models/gpu_mission_edit.html"
     list_template = "models/gpu_mission_list.html"
     column_default_sort = ('start_time', True)
-
-
-class GpuMissionConfigView(ModelView):
-    column_list = ['gpu_mission_name', 'config_file_path']
-    form_columns = ['gpu_mission_name', 'content']
-    can_create = False
-    edit_template = "models/config_edit.html"
 
 
 class GpuView(ModelView):
