@@ -10,7 +10,7 @@ if work_dir not in sys.path:
     sys.path.insert(0, work_dir)
 from gtask_db.machine import Machine
 from gtask_db.cpu_mission import Mission
-from gtask_db.gpu_mission import GpuMission, GpuMissionConfig, GpuMissionLog
+from gtask_db.gpu_mission import GpuMission, GpuMissionLog
 from flask import Flask, request, jsonify, redirect, render_template
 import flask_admin as admin
 from env import mongo_config
@@ -69,27 +69,6 @@ def gpu_task_log(task_name):
             _log = gpu_mission_log['pre_logs'] + _log
         return render_template("logs.html", task_name=task_name,
                                content=_log)
-
-
-# edit config page
-@app.route('/load_config/', methods=['POST'])
-def config_edit():
-    gpu_mission_name = request.form['gpu_mission_name']
-    repo = request.form['repo']
-    branch = request.form['branch']
-    config = GpuMissionConfig.objects(gpu_mission_name=gpu_mission_name).first()
-    if config:
-        return jsonify(msg='config exists already, id={}'.format(config.id),
-                       url='/admin/gpumission/edit/?id={}'.format(config.id))
-
-    config = GpuMissionConfig(gpu_mission_name=gpu_mission_name,
-                              content=get_config(repo, branch, 'speech/config.py'),
-                              disk_path='/zfs/octp/configs/{}_config.py'.format(gpu_mission_name))
-    if config['content']:
-        config.save()
-        return jsonify(msg='load config completed', url='/admin/gpumission/edit/?id={}'.format(config.id))
-    else:
-        return jsonify(msg='load config failed')
 
 
 # restart cpud/gpud
