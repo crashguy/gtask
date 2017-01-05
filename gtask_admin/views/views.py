@@ -79,7 +79,7 @@ def status_formatter(view, context, model, name):
 
 
 def tensorboard_formatter(view, context, model, name):
-    if model['status'] == 'running':
+    if model['status'] == 'running' and model['mount_port']:
         machine = Machine.objects(name=model['running_machine']).first()
         ip = machine['host'].split(":")[0]
         return Markup('<a href="http://%s:%s">link</a>'% (ip, model['mount_port']))
