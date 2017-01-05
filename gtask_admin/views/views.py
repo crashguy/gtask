@@ -126,7 +126,7 @@ class MachineView(ModelView):
         name=machine_name_formatter,
         container_num=contain_list_formatter
     )
-    column_default_sort = ['name']
+    column_default_sort = ('name', False)
 
 
 class GpuMissionView(ModelView):

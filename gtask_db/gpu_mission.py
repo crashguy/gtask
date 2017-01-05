@@ -11,6 +11,7 @@ machine_list=[
     'quad3',
     'quad4',
     'quad5',
+    'quad6',
 ]
 
 
