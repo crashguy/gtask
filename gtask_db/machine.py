@@ -1,6 +1,11 @@
 from gtask_db import db
 
 
+available_ports = [
+    6006, 6007, 6008, 6009
+]
+
+
 class Machine(db.Document):
     accept_jobs = db.StringField(max_length=40, default="")
     name = db.StringField(max_length=40)
@@ -16,11 +21,11 @@ class Machine(db.Document):
     gpu = db.DictField()
     available_gpus = db.ListField(db.StringField())
 
-
     container_num = db.IntField()
     containers = db.StringField()
     last_update = db.DateTimeField()
     gpu_last_update = db.DateTimeField()
+    ports = db.ListField(db.IntField(), default=available_ports)
 
 
 class Gpu(db.Document):

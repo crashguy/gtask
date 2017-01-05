@@ -78,6 +78,14 @@ def status_formatter(view, context, model, name):
     return model['status']
 
 
+def tensorboard_formatter(view, context, model, name):
+    if model['status'] == 'running':
+        machine = Machine.objects(name=model['running_machine']).first()
+        ip = machine['host'].split(":")[0]
+        return Markup('<a href="http://%s:%s">link</a>'% (ip, model['mount_port']))
+    return ''
+
+
 def status_key(mission):
     x = mission['status']
     status_mapping = defaultdict(lambda: 10)
@@ -131,7 +139,7 @@ class MachineView(ModelView):
 
 class GpuMissionView(ModelView):
     column_list = ['name', 'status', 'running_machine', 'running_gpu',
-                   'start_time', 'finish_time', 'error_log', 'running_log']
+                   'start_time', 'finish_time', 'error_log', 'running_log', 'tensorboard']
     form_columns = ['name', 'max_abort_times', 'status', 'docker', 'machine', 'volumes', 'gpu_num', 'repo',
                     'branch', 'command']
     column_filters = ['status', ]
@@ -140,7 +148,8 @@ class GpuMissionView(ModelView):
         finish_time=datetime_formatter,
         update_time=datetime_formatter,
         running_log=running_log_formatter,
-        status=status_formatter
+        status=status_formatter,
+        tensorboard=tensorboard_formatter
     )
 
     form_overrides = dict(

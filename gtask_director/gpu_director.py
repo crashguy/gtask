@@ -119,8 +119,7 @@ def update_mission():
         mission.save()
 
 
-def deploy_mission(machine, mission, re_run=False):
-    config_path = ''
+def deploy_mission(machine, mission):
     # handle log
     mission_log = GpuMissionLog.objects(gpu_mission_name=mission['name']).first()
     if not mission_log:
@@ -131,12 +130,12 @@ def deploy_mission(machine, mission, re_run=False):
         mission_log['running_log'] = ''
         mission_log.save()
 
+    # handle tensorboard port
+    mission['mount_port'], machine.ports = machine.ports[0], machine.ports[1:]
+
     speech_path = "/ssd/speech"
     output_path = "/ssd/speech_output/{}".format(mission['name'])
     mission_command = mission['command'].strip() + ' -w ' + output_path
-    if re_run:
-        # mission_command += " -m {}/latest ".format(output_path)
-        pass
     post_data = {
         "Image": mission['docker'],
         "Env": ["LD_PRELOAD=/usr/lib/libtcmalloc.so"],
@@ -144,10 +143,13 @@ def deploy_mission(machine, mission, re_run=False):
             cuda_lib: {}
             for cuda_lib in machine['cuda_libs']
             },
+        "ExposedPorts": {
+            "6006/tcp": {}
+        },
         "Entrypoint": ["python", "-u", "entry.py",
                        os.environ['GITHUB_USERNAME'], os.environ['GITHUB_PASSWORD'],
                        mission['repo'], mission['branch'],
-                       mission_command, config_path],
+                       mission_command, mission['name']],
         "HostConfig": {
             "Binds": [
                          '%s:%s' % (cuda_lib, cuda_lib)
@@ -160,7 +162,8 @@ def deploy_mission(machine, mission, re_run=False):
                         for i in range(mission['gpu_num'])] +
                        [{"PathOnHost": dev,
                          "PathInContainer": dev,
-                         "CgroupPermissions": "mrw"} for dev in machine['devices']]
+                         "CgroupPermissions": "mrw"} for dev in machine['devices']],
+            "PortBindings": {"6006/tcp": [{"HostPort": str(mission['mount_port'])}]},
         }
     }
     if mission['volumes']:
@@ -181,6 +184,7 @@ def deploy_mission(machine, mission, re_run=False):
                     resp = requests.post(create_url, json=post_data)
                     if resp.status_code >= 400:
                         raise Exception('create failed. code={}. {}'.format(resp.status_code, resp.text))
+                    logging.info('deploy gpu task %s on %s' % (mission['name'], machine['name']))
                 else:
                     raise Exception('delete {} failed. code={}. {}'.format(mission['name'], delete_resp.status_code, delete_resp.text))
             else:
@@ -204,28 +208,19 @@ def deploy_mission(machine, mission, re_run=False):
     mission.save()
 
 
-def rerun(machines):
+def deploy(machines):
     for machine in machines:
         rest_gpus = len(machine['available_gpus'])
         if rest_gpus == 0:
             continue
         next_job = GpuMission.objects(running_machine=machine['name'], status='aborted').first()
         if not next_job:
-            continue
-        if next_job['gpu_num'] > rest_gpus:
-            continue
-        deploy_mission(machine, next_job, re_run=True)
-
-
-def deploy(machines):
-    for machine in machines:
-        rest_gpus = len(machine['available_gpus'])
-        if rest_gpus == 0:
-            continue
-        next_job = GpuMission.objects(machine__contains=machine['name'], status='queueing').first()
+            next_job = GpuMission.objects(machine__contains=machine['name'], status='queueing').first()
         if not next_job:
             continue
         if next_job['gpu_num'] > rest_gpus:
+            continue
+        if not machine.ports:
             continue
         deploy_mission(machine, next_job)
 
@@ -240,6 +235,5 @@ if __name__ == '__main__':
     while True:
         machines = update_machine()
         update_mission()
-        rerun(machines)
         deploy(machines)
         time.sleep(SLEEP)

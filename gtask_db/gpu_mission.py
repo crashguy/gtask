@@ -2,7 +2,7 @@ from datetime import datetime
 
 from gtask_db import db
 
-machine_list=[
+machine_list = [
     'octp',
     'octo',
     'quad0',
@@ -44,11 +44,11 @@ class GpuMission(db.Document):
     abort_times = db.IntField(default=0)
     max_abort_times = db.IntField(default=3)
 
+    mount_port = db.IntField()
+
 
 class GpuMissionLog(db.Document):
     # name = db.StringField()
     gpu_mission_name = db.StringField(max_length=128)
     pre_logs = db.StringField(default='')
     running_log = db.StringField(default='')
-
-
