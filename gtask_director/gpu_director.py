@@ -18,6 +18,9 @@ from collections import defaultdict
 
 SLEEP = 15
 
+available_ports = [
+    6006, 6007, 6008, 6009
+]
 
 # def check_image_exist(machine, image_name):
 #     try:
@@ -69,6 +72,7 @@ def update_machine():
     for m in machines:
         try:
             m['available_gpus'] = []
+            m['ports'] = available_ports
             r = requests.get("http://%s/gpu/status/json" % m['plugin']).json()
             for i, g in enumerate(r['Devices']):
                 _gpu = gpus_dict[m['name']][i]
@@ -84,7 +88,8 @@ def update_machine():
             start_missions = GpuTask.objects(running_machine=m['name'], status='running').all()
             for mission in start_missions:
                 m['available_gpus'] = list(set(m['available_gpus']) - set(mission['running_gpu']))
-
+                m['ports'] = list(set(m['ports']) - set(mission['mount_port']))
+                
             m['gpu_last_update'] = datetime.now()
             m.save()
             updated_machines.append(m)
@@ -143,7 +148,7 @@ def deploy_mission(machine, mission):
         mission_log.save()
 
     # handle tensorboard port
-    mission['mount_port'], machine.ports = machine.ports[0], machine.ports[1:]
+    mission['mount_port'], machine['ports'] = machine.ports[0], machine['ports'][1:]
 
     speech_path = "/ssd/speech"
     output_path = "/ssd/speech_output/{}".format(mission['name'])
