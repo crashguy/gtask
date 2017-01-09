@@ -19,6 +19,18 @@ from collections import defaultdict
 SLEEP = 15
 
 
+# def check_image_exist(machine, image_name):
+#     try:
+#         r = requests.get("http://%s/images/json?filter=%s" % (machine['plugin'], image_name)).json()
+#         return True if r else False
+#
+#     except Exception as e:
+#         logging.error('%s init failed' % m['name'])
+#         logging.error(e)
+#         raise
+#
+#
+
 def init_gpu(machines):
     for m in machines:
         try:

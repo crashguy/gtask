@@ -100,4 +100,4 @@ def stop_daemon(machine_name, container_name):
 
 
 # Create admin
-gtask_admin = admin.Admin(app, 'GPU Admin', index_view=MyHomeView())
+gtask_admin = admin.Admin(app, 'TensorQueue Console', index_view=MyHomeView())

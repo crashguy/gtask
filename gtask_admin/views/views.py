@@ -137,7 +137,7 @@ class MachineView(ModelView):
     column_default_sort = ('name', False)
 
 
-class GpuMissionView(ModelView):
+class GpuTaskView(ModelView):
     column_list = ['name', 'status', 'running_machine', 'running_gpu',
                    'start_time', 'finish_time', 'error_log', 'running_log', 'tensorboard']
     form_columns = ['name', 'max_abort_times', 'status', 'docker', 'machine', 'volumes', 'gpu_num', 'repo',
@@ -163,7 +163,7 @@ class GpuMissionView(ModelView):
 
     def get_list(self, page, sort_column, sort_desc, search, filters,
                  execute=True, page_size=None):
-        count, query = super(GpuMissionView, self).get_list(
+        count, query = super(GpuTaskView, self).get_list(
             page, sort_column, sort_desc, search, filters, execute, page_size
         )
         if not sort_column:
