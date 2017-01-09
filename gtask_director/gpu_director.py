@@ -12,7 +12,7 @@ from datetime import datetime
 import requests
 from env import mongo_config
 from gtask_db import db
-from gtask_db.gpu_mission import GpuTask, GpuMissionLog
+from gtask_db.gpu_mission import GpuTask, GpuTaskLog
 from gtask_db.machine import Machine, Gpu
 from collections import defaultdict
 
@@ -117,7 +117,7 @@ def update_mission():
     for mission in missions:
         try:
             log_request = requests.get("http://%s/containers/%s/logs?stdout=1&stderr=1" % (machine_dict[mission['running_machine']]['host'], mission['running_id'][:12]))
-            mission_log = GpuMissionLog.objects(gpu_mission_name=mission['name']).first()
+            mission_log = GpuTaskLog.objects(gpu_mission_name=mission['name']).first()
             mission_log['running_log'] = log_request.text
             mission_log.save()
             r = requests.get("http://%s/containers/%s/json" % (machine_dict[mission['running_machine']]['host'], mission['running_id'][:12])).json()
@@ -133,9 +133,9 @@ def update_mission():
 
 def deploy_mission(machine, mission):
     # handle log
-    mission_log = GpuMissionLog.objects(gpu_mission_name=mission['name']).first()
+    mission_log = GpuTaskLog.objects(gpu_mission_name=mission['name']).first()
     if not mission_log:
-        mission_log = GpuMissionLog(gpu_mission_name=mission['name'])
+        mission_log = GpuTaskLog(gpu_mission_name=mission['name'])
         mission_log.save()
     elif mission_log['running_log']:
         mission_log['pre_logs'] += mission_log['running_log'] + '\n' + '-'*50 + '\n'*2

@@ -47,7 +47,7 @@ class GpuTask(db.Document):
     mount_port = db.IntField()
 
 
-class GpuMissionLog(db.Document):
+class GpuTaskLog(db.Document):
     # name = db.StringField()
     gpu_mission_name = db.StringField(max_length=128)
     pre_logs = db.StringField(default='')

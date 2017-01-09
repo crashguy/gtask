@@ -1,6 +1,6 @@
 from gtask_db import db
 from env import mongo_config
-from gtask_db.gpu_mission import GpuTask, GpuMissionLog
+from gtask_db.gpu_mission import GpuTask, GpuTaskLog
 
 
 def main():
@@ -9,9 +9,9 @@ def main():
 
     missions = GpuTask.objects().all()
     for mission in missions:
-        mission_log = GpuMissionLog.objects(gpu_mission_name=mission['name']).first()
+        mission_log = GpuTaskLog.objects(gpu_mission_name=mission['name']).first()
         if not mission_log:
-            mission_log = GpuMissionLog(gpu_mission_name=mission['name'])
+            mission_log = GpuTaskLog(gpu_mission_name=mission['name'])
             mission_log.save()
             print('create %s log' % mission['name'])
         # mission_log['pre_logs'] = mission['pre_logs']

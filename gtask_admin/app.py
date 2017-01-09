@@ -10,7 +10,7 @@ if work_dir not in sys.path:
     sys.path.insert(0, work_dir)
 from gtask_db.machine import Machine
 from gtask_db.cpu_mission import Mission
-from gtask_db.gpu_mission import GpuTask, GpuMissionLog
+from gtask_db.gpu_mission import GpuTask, GpuTaskLog
 from flask import Flask, request, jsonify, redirect, render_template
 import flask_admin as admin
 from env import mongo_config
@@ -60,7 +60,7 @@ def index():
 
 @app.route('/gpu_task/<string:task_name>/log/')
 def gpu_task_log(task_name):
-    gpu_mission_log = GpuMissionLog.objects(gpu_mission_name=task_name).first()
+    gpu_mission_log = GpuTaskLog.objects(gpu_mission_name=task_name).first()
     if not gpu_mission_log:
         return "no gpu_mission_log named {}".format(task_name)
     else:
