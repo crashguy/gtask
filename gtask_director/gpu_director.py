@@ -88,8 +88,8 @@ def update_machine():
             start_missions = GpuTask.objects(running_machine=m['name'], status='running').all()
             for mission in start_missions:
                 m['available_gpus'] = list(set(m['available_gpus']) - set(mission['running_gpu']))
-                m['ports'] = list(set(m['ports']) - set(mission['mount_port']))
-                
+                m['ports'] = list(set(m['ports']) - {mission['mount_port']})
+
             m['gpu_last_update'] = datetime.now()
             m.save()
             updated_machines.append(m)
