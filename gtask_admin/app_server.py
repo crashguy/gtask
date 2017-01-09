@@ -13,14 +13,14 @@ from gtask_admin.views.views import CpuMissionView, MachineView, \
 from gtask_db import db
 from gtask_db.machine import Machine, Gpu
 from gtask_db.cpu_mission import Mission
-from gtask_db.gpu_mission import GpuMission
+from gtask_db.gpu_mission import GpuTask
 
 db.connect(mongo_config['DB'],
            host="%s:%s" % (mongo_config['host'], mongo_config['port']))
 # Add views
 # db.init_app(app)
 # gtask_admin.add_view(CpuMissionView(Mission))
-gtask_admin.add_view(GpuTaskView(GpuMission))
+gtask_admin.add_view(GpuTaskView(GpuTask))
 gtask_admin.add_view(MachineView(Machine))
 gtask_admin.add_view(GpuView(Gpu))
 

@@ -15,7 +15,7 @@ machine_list = [
 ]
 
 
-class GpuMission(db.Document):
+class GpuTask(db.Document):
     name = db.StringField(max_length=128, unique=True)
     docker = db.StringField(max_length=100)
     machine = db.StringField(max_length=40, choices=machine_list)

@@ -10,7 +10,7 @@ if work_dir not in sys.path:
     sys.path.insert(0, work_dir)
 from gtask_db.machine import Machine
 from gtask_db.cpu_mission import Mission
-from gtask_db.gpu_mission import GpuMission, GpuMissionLog
+from gtask_db.gpu_mission import GpuTask, GpuMissionLog
 from flask import Flask, request, jsonify, redirect, render_template
 import flask_admin as admin
 from env import mongo_config
@@ -87,7 +87,7 @@ def stop_daemon(machine_name, container_name):
     machine = Machine.objects(name=machine_name).first()
     if not machine:
         return jsonify({"code": 404, "msg": "do not find machine %s" % machine_name})
-    gpu_mission = GpuMission.objects(name=container_name).first()
+    gpu_mission = GpuTask.objects(name=container_name).first()
     if not gpu_mission:
         return jsonify({"code": 404, "msg": "do not find gpu mission %s" % container_name})
     r = requests.post("http://{}/containers/{}/stop".format(machine['host'], container_name))

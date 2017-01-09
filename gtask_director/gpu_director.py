@@ -12,7 +12,7 @@ from datetime import datetime
 import requests
 from env import mongo_config
 from gtask_db import db
-from gtask_db.gpu_mission import GpuMission, GpuMissionLog
+from gtask_db.gpu_mission import GpuTask, GpuMissionLog
 from gtask_db.machine import Machine, Gpu
 from collections import defaultdict
 
@@ -81,7 +81,7 @@ def update_machine():
                     _gpu['processes'] = ''
                 _gpu['last_update'] = datetime.now()
                 _gpu.save()
-            start_missions = GpuMission.objects(running_machine=m['name'], status='running').all()
+            start_missions = GpuTask.objects(running_machine=m['name'], status='running').all()
             for mission in start_missions:
                 m['available_gpus'] = list(set(m['available_gpus']) - set(mission['running_gpu']))
 
@@ -110,7 +110,7 @@ def check_result(mission, mission_log):
 
 
 def update_mission():
-    missions = GpuMission.objects(status='running').all()
+    missions = GpuTask.objects(status='running').all()
     machines = Machine.objects().all()
     machine_dict = {m['name']: m for m in machines}
 
@@ -225,9 +225,9 @@ def deploy(machines):
         rest_gpus = len(machine['available_gpus'])
         if rest_gpus == 0:
             continue
-        next_job = GpuMission.objects(running_machine=machine['name'], status='aborted').first()
+        next_job = GpuTask.objects(running_machine=machine['name'], status='aborted').first()
         if not next_job:
-            next_job = GpuMission.objects(machine__contains=machine['name'], status='queueing').first()
+            next_job = GpuTask.objects(machine__contains=machine['name'], status='queueing').first()
         if not next_job:
             continue
         if next_job['gpu_num'] > rest_gpus:

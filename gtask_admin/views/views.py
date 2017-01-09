@@ -10,7 +10,7 @@ from wtforms.fields import StringField, TextAreaField
 from wtforms.widgets import TextInput, HTMLString
 from collections import defaultdict
 
-from gtask_db.gpu_mission import GpuMission
+from gtask_db.gpu_mission import GpuTask
 from gtask_db.machine import Machine
 
 
@@ -56,7 +56,7 @@ def pid_formatter(view, context, model, name):
         return ''
     else:
         pids = pids.split(',')
-    mission = GpuMission.objects(running_pid__in=pids).first()
+    mission = GpuTask.objects(running_pid__in=pids).first()
     if mission:
         return '%s(%s)' % (model[name], mission['name'])
     else:
