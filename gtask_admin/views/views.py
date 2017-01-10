@@ -2,7 +2,7 @@
 
 from datetime import datetime, timedelta
 
-from flask import Markup
+from flask import Markup, url_for
 from flask_admin import expose
 from flask_admin.base import AdminIndexView
 from flask_admin.contrib.mongoengine import ModelView
@@ -48,6 +48,11 @@ def contain_list_formatter(view, context, model, name):
 
 def show_machine_name_formatter(view, context, model, name):
     return model[name]['name']
+
+
+def task_name_formatter(view, context, model, name):
+    url = '/admin/gputask/edit?id=%s' % model['id']
+    return Markup("<a href={}>{}</a>".format(url, model[name]))
 
 
 def pid_formatter(view, context, model, name):
@@ -149,7 +154,8 @@ class GpuTaskView(ModelView):
         update_time=datetime_formatter,
         running_log=running_log_formatter,
         status=status_formatter,
-        tensorboard=tensorboard_formatter
+        tensorboard=tensorboard_formatter,
+        name=task_name_formatter
     )
 
     form_overrides = dict(

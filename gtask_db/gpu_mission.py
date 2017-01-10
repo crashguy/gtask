@@ -19,7 +19,7 @@ class GpuTask(db.Document):
     name = db.StringField(max_length=128, unique=True)
     docker = db.StringField(max_length=100)
     machine = db.StringField(max_length=40, choices=machine_list)
-    volumes = db.StringField(max_length=128)
+    volumes = db.StringField(max_length=1024)
     gpu_num = db.IntField(default=4)
     repo = db.StringField(max_length=128, default='github.com/naturali/dnn')
     branch = db.StringField(max_length=40, default='master')
