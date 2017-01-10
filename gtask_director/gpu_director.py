@@ -43,7 +43,7 @@ def download_image(machine, image_name):
     try:
         requests.post("http://%s/images/create?fromImage=%s" % (
             machine['host'], image_name))
-        logging.info('%s start to download image %s failed' % (machine['name'], image_name))
+        logging.info('%s start to download image %s' % (machine['name'], image_name))
 
     except Exception as e:
         logging.error('%s download image %s failed' % (machine['name'], image_name))
@@ -163,7 +163,7 @@ def deploy_task(machine, task):
         return
 
     # handle log
-    task_log = GpuTaskLog.objects(gpu_task_name=task['name']).first()
+    task_log = GpuTaskLog.objects(gpu_mission_name=task['name']).first()
     if not task_log:
         task_log = GpuTaskLog(gpu_mission_name=task['name'])
         task_log.save()
