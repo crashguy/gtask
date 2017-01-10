@@ -26,7 +26,12 @@ available_ports = [
 def check_image_exist(machine, image_name):
     try:
         r = requests.get("http://%s/images/json?filter=%s" % (machine['plugin'], image_name)).json()
-        return True if r else False
+        if r:
+            logging.info("%s has image %s" % (machine['name'], image_name))
+            return True
+        else:
+            logging.info("%s does not have image %s" % (machine['name'], image_name))
+            return False
 
     except Exception as e:
         logging.error('%s check image %s failed' % (machine['name'], image_name))
@@ -38,6 +43,7 @@ def download_image(machine, image_name):
     try:
         requests.post("http://%s/images/create?fromImage=%s" % (
             machine['plugin'], image_name))
+        logging.info('%s start to download image %s failed' % (machine['name'], image_name))
 
     except Exception as e:
         logging.error('%s download image %s failed' % (machine['name'], image_name))
