@@ -13,7 +13,7 @@ from gtask_admin.views.views import CpuMissionView, MachineView, \
 from gtask_db import db
 from gtask_db.machine import Machine, Gpu
 from gtask_db.cpu_mission import Mission
-from gtask_db.gpu_mission import GpuTask
+from gtask_db.gpu_task import GpuTask
 
 db.connect(mongo_config['DB'],
            host="%s:%s" % (mongo_config['host'], mongo_config['port']))

@@ -10,7 +10,7 @@ if work_dir not in sys.path:
     sys.path.insert(0, work_dir)
 from gtask_db.machine import Machine
 from gtask_db.cpu_mission import Mission
-from gtask_db.gpu_mission import GpuTask, GpuTaskLog
+from gtask_db.gpu_task import GpuTask, GpuTaskLog
 from flask import Flask, request, jsonify, redirect, render_template
 import flask_admin as admin
 from env import mongo_config

@@ -10,7 +10,7 @@ from wtforms.fields import StringField, TextAreaField
 from wtforms.widgets import TextInput, HTMLString
 from collections import defaultdict
 
-from gtask_db.gpu_mission import GpuTask
+from gtask_db.gpu_task import GpuTask
 from gtask_db.machine import Machine
 
 

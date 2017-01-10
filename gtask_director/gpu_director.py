@@ -12,7 +12,7 @@ from datetime import datetime
 import requests
 from env import mongo_config
 from gtask_db import db
-from gtask_db.gpu_mission import GpuTask, GpuTaskLog
+from gtask_db.gpu_task import GpuTask, GpuTaskLog
 from gtask_db.machine import Machine, Gpu
 from collections import defaultdict
 
@@ -22,17 +22,28 @@ available_ports = [
     6006, 6007, 6008, 6009
 ]
 
-# def check_image_exist(machine, image_name):
-#     try:
-#         r = requests.get("http://%s/images/json?filter=%s" % (machine['plugin'], image_name)).json()
-#         return True if r else False
-#
-#     except Exception as e:
-#         logging.error('%s init failed' % m['name'])
-#         logging.error(e)
-#         raise
-#
-#
+
+def check_image_exist(machine, image_name):
+    try:
+        r = requests.get("http://%s/images/json?filter=%s" % (machine['plugin'], image_name)).json()
+        return True if r else False
+
+    except Exception as e:
+        logging.error('%s check image %s failed' % (machine['name'], image_name))
+        logging.error(e)
+        raise
+
+
+def download_image(machine, image_name):
+    try:
+        requests.post("http://%s/images/create?fromImage=%s" % (
+            machine['plugin'], image_name))
+
+    except Exception as e:
+        logging.error('%s download image %s failed' % (machine['name'], image_name))
+        logging.error(e)
+        raise
+
 
 def init_gpu(machines):
     for m in machines:
@@ -85,10 +96,10 @@ def update_machine():
                     _gpu['processes'] = ''
                 _gpu['last_update'] = datetime.now()
                 _gpu.save()
-            start_missions = GpuTask.objects(running_machine=m['name'], status='running').all()
-            for mission in start_missions:
-                m['available_gpus'] = list(set(m['available_gpus']) - set(mission['running_gpu']))
-                m['ports'] = list(set(m['ports']) - {mission['mount_port']})
+            start_tasks = GpuTask.objects(running_machine=m['name'], status='running').all()
+            for task in start_tasks:
+                m['available_gpus'] = list(set(m['available_gpus']) - set(task['running_gpu']))
+                m['ports'] = list(set(m['ports']) - {task['mount_port']})
 
             m['gpu_last_update'] = datetime.now()
             m.save()
@@ -99,62 +110,70 @@ def update_machine():
     return updated_machines
 
 
-def check_result(mission, mission_log):
-    finish_tag = "Mission Done!!!"
-    mission['finish_time'] = datetime.now()
-    if finish_tag in mission_log['running_log']:
-        mission['status'] = "done"
+def check_result(task, task_log):
+    finish_tag = "task Done!!!"
+    task['finish_time'] = datetime.now()
+    if finish_tag in task_log['running_log']:
+        task['status'] = "done"
     else:
-        mission['abort_times'] += 1
-        if mission['abort_times'] <= mission['max_abort_times']:
-            mission['status'] = "aborted"
+        task['abort_times'] += 1
+        if task['abort_times'] <= task['max_abort_times']:
+            task['status'] = "aborted"
         else:
-            mission['status'] = "aborted %d times." % mission['abort_times']
+            task['status'] = "aborted %d times." % task['abort_times']
 
-    mission.save()
+    task.save()
 
 
-def update_mission():
-    missions = GpuTask.objects(status='running').all()
+def update_task():
+    tasks = GpuTask.objects(status='running').all()
     machines = Machine.objects().all()
     machine_dict = {m['name']: m for m in machines}
 
-    for mission in missions:
+    for tasks in tasks:
         try:
-            log_request = requests.get("http://%s/containers/%s/logs?stdout=1&stderr=1" % (machine_dict[mission['running_machine']]['host'], mission['running_id'][:12]))
-            mission_log = GpuTaskLog.objects(gpu_mission_name=mission['name']).first()
-            mission_log['running_log'] = log_request.text
-            mission_log.save()
-            r = requests.get("http://%s/containers/%s/json" % (machine_dict[mission['running_machine']]['host'], mission['running_id'][:12])).json()
-            mission['status'] = r['State']['Status']
-            if mission['status'] != 'running':
-                check_result(mission, mission_log)
-            mission['error_log'] = ''
+            log_request = requests.get("http://%s/containers/%s/logs?stdout=1&stderr=1" % (machine_dict[tasks['running_machine']]['host'], tasks['running_id'][:12]))
+            task_log = GpuTaskLog.objects(gpu_mission_name=tasks['name']).first()
+            task_log['running_log'] = log_request.text
+            task_log.save()
+            r = requests.get("http://%s/containers/%s/json" % (machine_dict[tasks['running_machine']]['host'], tasks['running_id'][:12])).json()
+            tasks['status'] = r['State']['Status']
+            if tasks['status'] != 'running':
+                check_result(tasks, task_log)
+            tasks['error_log'] = ''
         except Exception as e:
-            mission['error_log'] = str(e)
-        mission['update_time'] = datetime.now()
-        mission.save()
+            tasks['error_log'] = str(e)
+        tasks['update_time'] = datetime.now()
+        tasks.save()
 
 
-def deploy_mission(machine, mission):
+def deploy_task(machine, task):
+    # check images
+    has_image = check_image_exist(machine, task['docker'])
+    if not has_image:
+        download_image(machine, task['docker'])
+        task['status'] = 'downloading'
+        task.save()
+        return
+
     # handle log
-    mission_log = GpuTaskLog.objects(gpu_mission_name=mission['name']).first()
-    if not mission_log:
-        mission_log = GpuTaskLog(gpu_mission_name=mission['name'])
-        mission_log.save()
-    elif mission_log['running_log']:
-        mission_log['pre_logs'] += mission_log['running_log'] + '\n' + '-'*50 + '\n'*2
-        mission_log['running_log'] = ''
-        mission_log.save()
+    task_log = GpuTaskLog.objects(gpu_task_name=task['name']).first()
+    if not task_log:
+        task_log = GpuTaskLog(gpu_mission_name=task['name'])
+        task_log.save()
+    elif task_log['running_log']:
+        task_log['pre_logs'] += task_log['running_log'] + '\n' + '-'*50 + '\n'*2
+        task_log['running_log'] = ''
+        task_log.save()
 
     # handle tensorboard port
-    mission['mount_port'], machine['ports'] = machine.ports[0], machine['ports'][1:]
+    task['mount_port'], machine['ports'] = machine.ports[0], machine['ports'][1:]
 
     speech_path = "/ssd/speech"
-    output_path = "/ssd/speech_output/{}".format(mission['name'])
-    mission_command = mission['command'].strip() + ' -w ' + output_path
+    output_path = "/ssd/speech_output/{}".format(task['name'])
+    task_command = task['command'].strip() + ' -w ' + output_path
     post_data = {
-        "Image": mission['docker'],
+        "Image": task['docker'],
         "Env": ["LD_PRELOAD=/usr/lib/libtcmalloc.so"],
         "Volumes": {
             cuda_lib: {}
@@ -165,8 +184,8 @@ def deploy_mission(machine, mission):
         },
         "Entrypoint": ["python", "-u", "entry.py",
                        os.environ['GITHUB_USERNAME'], os.environ['GITHUB_PASSWORD'],
-                       mission['repo'], mission['branch'],
-                       mission_command, mission['name']],
+                       task['repo'], task['branch'],
+                       task_command, task['name']],
         "HostConfig": {
             "Binds": [
                          '%s:%s' % (cuda_lib, cuda_lib)
@@ -176,53 +195,53 @@ def deploy_mission(machine, mission):
             "Devices": [{"PathOnHost": machine['available_gpus'][i],
                          "PathInContainer": "/dev/nvidia%d" % i,
                          "CgroupPermissions": "mrw"}
-                        for i in range(mission['gpu_num'])] +
+                        for i in range(task['gpu_num'])] +
                        [{"PathOnHost": dev,
                          "PathInContainer": dev,
                          "CgroupPermissions": "mrw"} for dev in machine['devices']],
-            "PortBindings": {"6006/tcp": [{"HostPort": str(mission['mount_port'])}]},
+            "PortBindings": {"6006/tcp": [{"HostPort": str(task['mount_port'])}]},
         }
     }
-    if mission['volumes']:
-        post_data['HostConfig']['Binds'].extend([v.strip() for v in mission['volumes'].split(',')])
+    if task['volumes']:
+        post_data['HostConfig']['Binds'].extend([v.strip() for v in task['volumes'].split(',')])
 
     post_data['HostConfig']['Binds'] += ['%s:%s' % (speech_path, speech_path)]
 
-    create_url = 'http://' + machine['host'] + '/containers/create?name=%s' % mission['name']
+    create_url = 'http://' + machine['host'] + '/containers/create?name=%s' % task['name']
     start_url = 'http://' + machine['host'] + '/containers/{}/start'
     try:
         resp = requests.post(create_url, json=post_data)
         if resp.status_code >= 400:
             if resp.status_code == 409:
                 # try to delete exist container
-                delete_url = 'http://' + machine['host'] + '/containers/{}'.format(mission['name'])
+                delete_url = 'http://' + machine['host'] + '/containers/{}'.format(task['name'])
                 delete_resp = requests.delete(delete_url)
                 if delete_resp.status_code == 204:
                     resp = requests.post(create_url, json=post_data)
                     if resp.status_code >= 400:
                         raise Exception('create failed. code={}. {}'.format(resp.status_code, resp.text))
-                    logging.info('deploy gpu task %s on %s' % (mission['name'], machine['name']))
+                    logging.info('deploy gpu task %s on %s' % (task['name'], machine['name']))
                 else:
-                    raise Exception('delete {} failed. code={}. {}'.format(mission['name'], delete_resp.status_code, delete_resp.text))
+                    raise Exception('delete {} failed. code={}. {}'.format(task['name'], delete_resp.status_code, delete_resp.text))
             else:
                 raise Exception('create failed. code={}. {}'.format(resp.status_code, resp.text))
         r = resp.json()
-        mission['running_id'] = r['Id']
-        mission['running_machine'] = machine['name']
-        mission['running_gpu'] = machine['available_gpus'][:mission['gpu_num']]
-        mission['start_time'] = datetime.now()
-        mission['finish_time'] = None
+        task['running_id'] = r['Id']
+        task['running_machine'] = machine['name']
+        task['running_gpu'] = machine['available_gpus'][:task['gpu_num']]
+        task['start_time'] = datetime.now()
+        task['finish_time'] = None
         resp = requests.post(start_url.format(r['Id'][:12]))
         if resp.status_code >= 400:
             raise Exception('start failed. code={}. {}'.format(resp.status_code, resp.text))
-        mission['status'] = 'running'
-        mission['error_log'] = ''
+        task['status'] = 'running'
+        task['error_log'] = ''
     except Exception as e:
-        mission['status'] = 'start failed'
-        mission['error_log'] = str(e)
+        task['status'] = 'start failed'
+        task['error_log'] = str(e)
         logging.error(e)
 
-    mission.save()
+    task.save()
 
 
 def deploy(machines):
@@ -239,7 +258,17 @@ def deploy(machines):
             continue
         if not machine.ports:
             continue
-        deploy_mission(machine, next_job)
+        deploy_task(machine, next_job)
+
+
+def check_downloading_tasks():
+    tasks = GpuTask.objects(status='downloading').all()
+    machines = Machine.objects().all()
+    machine_dict = {m['name']: m for m in machines}
+    for task in tasks:
+        if check_image_exist(machine_dict[task['running_machine']], task['docker']):
+            task['status'] = 'queueing'
+            task.save()
 
 
 if __name__ == '__main__':
@@ -251,6 +280,7 @@ if __name__ == '__main__':
     init_gpu(Machine.objects(accept_jobs__contains='gpu').all())
     while True:
         machines = update_machine()
-        update_mission()
+        update_task()
+        check_downloading_tasks()
         deploy(machines)
         time.sleep(SLEEP)

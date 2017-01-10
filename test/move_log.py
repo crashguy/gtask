@@ -1,6 +1,6 @@
 from gtask_db import db
 from env import mongo_config
-from gtask_db.gpu_mission import GpuTask, GpuTaskLog
+from gtask_db.gpu_task import GpuTask, GpuTaskLog
 
 
 def main():
