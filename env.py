@@ -10,9 +10,6 @@ if os.getenv("ENV_MODE") == "docker":
         'port': int(os.getenv("MONGODB_PORT", 6000))
     }
 elif os.getenv("ENV_MODE") == "linan":
-    os.environ['GITHUB_USERNAME']='crashguy'
-    os.environ['GITHUB_PASSWORD']='cc860808'
-
     DEBUG = True
     PORT = 9020
     mongo_config = {

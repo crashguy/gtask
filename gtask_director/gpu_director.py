@@ -190,7 +190,7 @@ def deploy_task(machine, task):
         },
         "Entrypoint": ["python", "-u", "entry.py",
                        os.environ['GITHUB_USERNAME'], os.environ['GITHUB_PASSWORD'],
-                       task['repo'], task['branch'],
+                       task['repo'], task['commit_id'],
                        task_command, task['name']],
         "HostConfig": {
             "Binds": [

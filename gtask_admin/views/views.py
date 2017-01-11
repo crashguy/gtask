@@ -2,7 +2,7 @@
 
 from datetime import datetime, timedelta
 
-from flask import Markup, url_for
+from flask import Markup
 from flask_admin import expose
 from flask_admin.base import AdminIndexView
 from flask_admin.contrib.mongoengine import ModelView
@@ -12,7 +12,7 @@ from collections import defaultdict
 
 from gtask_db.gpu_task import GpuTask
 from gtask_db.machine import Machine
-
+from util.util import get_commit_id
 
 def datetime_formatter(view, context, model, name):
     if not model[name]:
@@ -145,8 +145,8 @@ class MachineView(ModelView):
 class GpuTaskView(ModelView):
     column_list = ['name', 'status', 'running_machine', 'running_gpu',
                    'start_time', 'finish_time', 'error_log', 'running_log', 'tensorboard']
-    form_columns = ['name', 'max_abort_times', 'status', 'docker', 'machine', 'volumes', 'gpu_num', 'repo',
-                    'branch', 'command']
+    form_columns = ['name', 'max_abort_times', 'status', 'docker', 'machine',
+                    'volumes', 'gpu_num', 'repo', 'branch', 'commit_id', 'command']
     column_filters = ['status', ]
     column_formatters = dict(
         start_time=datetime_formatter,
@@ -176,6 +176,13 @@ class GpuTaskView(ModelView):
             new_query = sorted(query, key=status_key)
             return count, new_query
         return count, query
+
+    def after_model_change(self, form, model, is_created):
+        super(GpuTaskView, self).after_model_change(form, model, is_created)
+        if not model['commit_id']:
+            model['commit_id'] = get_commit_id(model['repo'], model['branch']) \
+                                 or 'branch not found'
+            model.save()
 
 
 class GpuView(ModelView):

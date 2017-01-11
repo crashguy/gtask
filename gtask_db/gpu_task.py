@@ -23,6 +23,7 @@ class GpuTask(db.Document):
     gpu_num = db.IntField(default=4)
     repo = db.StringField(max_length=128, default='github.com/naturali/dnn')
     branch = db.StringField(max_length=40, default='master')
+    commit_id = db.StringField(max_length=128)
     command = db.StringField(max_length=1024)
 
     git_username = db.StringField(max_length=30)

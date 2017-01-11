@@ -15,7 +15,6 @@ from flask import Flask, request, jsonify, redirect, render_template
 import flask_admin as admin
 from env import mongo_config
 from gtask_admin.views.views import MyHomeView
-from util.util import get_config
 import requests
 from datetime import datetime
 
